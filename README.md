@@ -3,4 +3,4 @@
 ### 目录
 1. [JavaScript跨域访问](https://github.com/andyChenAn/frontEnd/issues/1)
 2. [http缓存](https://github.com/andyChenAn/frontEnd/issues/2)
-3. [http缓存](https://github.com/andyChenAn/frontEnd/issues/3)
+3. [前端异常捕获与上报](https://github.com/andyChenAn/frontEnd/issues/3)
