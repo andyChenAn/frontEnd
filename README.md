@@ -5,3 +5,4 @@
 2. [http缓存](https://github.com/andyChenAn/frontEnd/issues/2)
 3. [前端异常捕获与上报](https://github.com/andyChenAn/frontEnd/issues/3)
 4. [函数节流与防抖](https://github.com/andyChenAn/frontEnd/issues/4)
+5. [简单前端模板实现](https://github.com/andyChenAn/frontEnd/issues/5)
