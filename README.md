@@ -7,3 +7,4 @@
 4. [函数节流与防抖](https://github.com/andyChenAn/frontEnd/issues/4)
 5. [简单前端模板实现](https://github.com/andyChenAn/frontEnd/issues/5)
 6. [数组去重](https://github.com/andyChenAn/frontEnd/issues/6)
+7. [浅拷贝和深拷贝](https://github.com/andyChenAn/frontEnd/issues/7)
