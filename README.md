@@ -8,3 +8,4 @@
 5. [简单前端模板实现](https://github.com/andyChenAn/frontEnd/issues/5)
 6. [数组去重](https://github.com/andyChenAn/frontEnd/issues/6)
 7. [浅拷贝和深拷贝](https://github.com/andyChenAn/frontEnd/issues/7)
+8. [函数柯里化](https://github.com/andyChenAn/frontEnd/issues/8)
