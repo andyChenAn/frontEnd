@@ -10,3 +10,4 @@
 7. [浅拷贝和深拷贝](https://github.com/andyChenAn/frontEnd/issues/7)
 8. [函数柯里化](https://github.com/andyChenAn/frontEnd/issues/8)
 9. [长轮询和短轮询](https://github.com/andyChenAn/frontEnd/issues/9)
+10. [http代理](https://github.com/andyChenAn/frontEnd/issues/10)
