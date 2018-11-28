@@ -204,3 +204,82 @@ function ppHOC(WrappedComponent) {
 }
 ```
 上面代码就是一个通过props proxy方式来实现高阶组件，这里最重要的部分就是HOC返回了一个WrappedComponent类型的React元素，并且也接收了props，所以这才叫做props proxy。
+### 用函数作为子组件
+组件接收一个函数作为他的子元素。比如：
+
+```javascript
+class App extends Component {
+    constructor (props) {
+        super(props);
+    }
+    render () {
+        return (
+            {this.props.children("andy")}
+        )
+    }
+}
+```
+其实将子组件作为函数的用法比较简单，像下面这个例子：
+
+```javascript
+const root = document.getElementById('root');
+
+class Welcome extends React.Component {
+    constructor (props) {
+        super(props);
+    }
+    render () {
+        return (
+            <div>
+                {this.props.children("welcome to China")}    
+            </div>
+        )
+    }
+}
+class App extends React.Component {
+    constructor (props) {
+        super(props);
+    }
+    render () {
+        return (
+            <Welcome>
+                {name => <h1>{name}</h1>}
+            </Welcome>
+        )
+    }
+}
+
+ReactDOM.render(<App /> , root)
+```
+
+```javascript
+const root = document.getElementById('root');
+
+class Welcome extends React.Component {
+    constructor (props) {
+        super(props);
+    }
+    render () {
+        return (
+            <div>
+                {this.props.children('red' , 18 , 'andychen')}    
+            </div>
+        )
+    }
+}
+class App extends React.Component {
+    constructor (props) {
+        super(props);
+    }
+    render () {
+        return (
+            <Welcome>
+                {(color , fontSize , name) => <h1 style={{color , fontSize}}>{name}</h1>}
+            </Welcome>
+        )
+    }
+}
+
+ReactDOM.render(<App /> , root)
+```
+上面的例子，我们可以看出通过函数作为子类组件的组件我们就能解耦父类组件和它们的子类组件，让我们决定使用哪些参数以及怎么将参数运用于子类组件中。
