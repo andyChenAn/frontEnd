@@ -14,3 +14,4 @@
 10. [http代理](https://github.com/andyChenAn/frontEnd/issues/10)
 ### react.js部分
 1. [react组件](https://github.com/andyChenAn/frontEnd/issues/11)
+2. [react组件声明周期](https://github.com/andyChenAn/frontEnd/issues/12)
