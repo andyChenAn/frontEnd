@@ -1,0 +1,18 @@
+.fade-enter {
+	opacity: 0;
+	transform: translateX(100px);
+}
+.fade-enter-active {
+	opacity: 1;
+	transform: translateX(0);
+	transition: all 0.3s ease-in;
+}
+.fade-exit {
+	opacity: 1;
+	transform: translateX(0);
+}
+.fade-exit-active {
+	opacity: 0;
+	transform: translateX(100px);
+	transition: all 0.3s ease-in;
+}
