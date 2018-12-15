@@ -14,4 +14,7 @@
 10. [http代理](https://github.com/andyChenAn/frontEnd/issues/10)
 ### react.js部分
 1. [react组件](https://github.com/andyChenAn/frontEnd/issues/11)
-2. [react动画](https://github.com/andyChenAn/frontEnd/issues/12)
+2. [react组件生命周期](https://github.com/andyChenAn/frontEnd/issues/12)
+3. [react路由基本组件](https://github.com/andyChenAn/frontEnd/issues/13)
+4. [react服务端渲染](https://github.com/andyChenAn/frontEnd/issues/14)
+5. [react组件代码分割](https://github.com/andyChenAn/frontEnd/issues/15)
