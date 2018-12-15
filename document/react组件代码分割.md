@@ -196,4 +196,107 @@ class App extends Component {
 
 ```
 当我们把鼠标放在按钮上是，就开始预先加载组件，等到点击按钮时，就把组件展示出来。
+##### 在服务器端预加载所有的组件
+这里我们需要使用Loadable.preloadAll()方法来实现，调用该方法返回一个promise对象，当所有的组件都加载完成后，我们在监听端口号，比如：
 
+```javascript
+import express from 'express';
+import React , { Component } from 'react';
+import ReactDOMServer from 'react-dom/server';
+import Loadable from 'react-loadable';
+import Loading from './components/Loading';
+import delay from './utils/index';
+const app = express();
+
+console.time();
+
+const AppLoadable = Loadable({
+    // 我这里只是模拟了组件加载了3秒钟
+    loader : () => delay(3000).then(() => import('./components/App')),
+    loading : Loading
+});
+
+app.get('/' , (req , res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            <title>Document</title>
+        </head>
+        <body>
+            <div id="app">${ReactDOMServer.renderToString(<AppLoadable />)}</div>
+        </body>
+        </html>
+    `)
+});
+// 在组件加载了3秒钟之后，服务器才监听3000端口
+// 这样就达到了在服务器端预加载组件
+Loadable.preloadAll().then(() => {
+    console.timeEnd();
+    app.listen(3000 , () => {
+        console.log('listening port 3000');
+    })
+});
+```
+##### 查找动态加载的组件
+我们可以使用Loadable.Capture组件实现。<Loadable.Capture />组件接收一个report的属性，该属性是一个函数，该函数接受一个参数，这个参数就是已经加载的组件模块，我们就可以将这个组件模块添加到一个数组中，并且打印出来，这样我们就可以找出有多少个组件是动态加载的了。
+
+```javascript
+import express from 'express';
+import React , { Component } from 'react';
+import ReactDOMServer from 'react-dom/server';
+import Loadable from 'react-loadable';
+import Loading from './components/Loading';
+import delay from './utils/index';
+const app = express();
+
+app.use(express.static('dist'));
+
+console.time();
+
+const AppLoadable = Loadable({
+    loader : () => import('./components/App'),
+    loading : Loading
+});
+
+app.get('/' , (req , res) => {
+    let modules = [];
+    let html = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+                    <title>Document</title>
+                </head>
+                <body>
+                    <div id="app">${ReactDOMServer.renderToString(
+                        <Loadable.Capture report={moduleNames => modules.push(moduleNames)}>
+                            <AppLoadable />
+                        </Loadable.Capture>
+                    )}</div>
+                    <script src="./main.js"></script>
+                </body>
+                </html>
+            `;
+        console.log(modules);
+    res.send(html);
+});
+
+Loadable.preloadAll().then(() => {
+    console.timeEnd();
+    app.listen(3000 , () => {
+        console.log('listening port 3000');
+    })
+});
+
+```
+结果为：
+
+```
+[ './components/App' ]
+```
