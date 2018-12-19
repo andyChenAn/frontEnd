@@ -169,7 +169,7 @@ Redirect组件有以下几个属性：
 - 2、from属性
   - 这个属性表示Redirect组件的路由原始值，当路由路径匹配from时，那么会重定向到to上面。如果Redirect组件上没有from属性，那么他都会匹配到当前路由的路径，这样的话，不管路由路径是哪个，都会重定向
 - 3、push属性
-  - 该属性是一个布尔值，如果为true，表示把新的地址添加到访问历史记录里面，并且无法回退到前面的页面
+  - 该属性是一个布尔值，如果为true，表示把新的地址添加到访问历史记录里面作为入口，并且无法回退到前面的页面
 - 3、exact属性
   - 该属性是一个布尔值，如果为true，那么表示不能匹配路径的子路径，比如：当路径匹配"/home"，就不能匹配"/home/one"。如果为false，那么就可以匹配，所以我们在使用路由的时候会添加<Route exact path="/" />，不然都会匹配到"/"。
 - 4、strict属性
@@ -280,5 +280,84 @@ class App extends Component {
     }
 }
 
+export default App;
+```
+### Redirect组件综合例子
+
+```javascript
+import React, { Component } from 'react';
+import { BrowserRouter as Router , Route , Switch , Link , withRouter , Redirect } from 'react-router-dom';
+
+// 这里我们调用withRouter高阶函数来将组件进行包装，主要目的是为了获取路由对象的三个属性（history , location , match）
+const AddressBar = withRouter(class AddressBar extends Component {
+    constructor (props) {
+        super(props);
+    }
+    prevPage = () => {
+        const { history } = this.props;
+        history.goBack();
+    }
+    nextPage = () => {
+        const { history } = this.props;
+        history.goForward();
+    }
+    render () {
+        return (
+            <div>
+                <button onClick={this.prevPage}>上一页</button>
+                <button onClick={this.nextPage}>下一页</button>
+                <div>URL : {this.props.location.pathname}</div>
+            </div>
+        )
+    }
+});
+
+const isLogin = false;
+
+class Nav extends Component {
+    constructor (props) {
+        super(props);
+    }
+    render () {
+        return (
+            <div>
+                <Link className="link" to="/">Home</Link>
+                <Link className="link" to="/old/123">Old</Link>
+                <Link className="link" to="/new/456">New</Link>
+                <Link className="link" to="/redirect/789">Redirect</Link>
+                <Link className="link" to="/protected">Login</Link>
+            </div>
+        )
+    }
+}
+
+class App extends Component {
+    render () {
+        return (
+            <Router>
+                <div>
+                    <AddressBar />
+                    <Nav />
+                    <Route path="/" exact render={() => <h1>Home</h1>} />
+                    <Switch>
+                        // 当匹配from路径，那么会重定向到to路径上面
+                        <Redirect from="/old/:id" to="/new/123" />
+                        <Route path="/new/:id" render={({match}) => (
+                            <h1>new : {match.params.id}</h1>
+                        )} />
+                    </Switch>
+                    // push属性为true，添加新的地址作为访问历史记录的入口，这样就不能访问该路径之前的地址了
+                    // push属性默认为false
+                    <Route path="/redirect/:id" render={({match}) => (
+                        <Redirect push to={`/new/${match.params.id}`} />
+                    )} />
+                    <Route path="/protected" render={() => (
+                        isLogin ? <h1>Welcome</h1> : <Redirect to="/new/login" />
+                    )} />
+                </div>
+            </Router>
+        )
+    }
+}
 export default App;
 ```

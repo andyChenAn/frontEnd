@@ -17,5 +17,6 @@
 - 2、 [react组件生命周期](https://github.com/andyChenAn/frontEnd/issues/12)
 - 3、 [react路由基本组件](https://github.com/andyChenAn/frontEnd/issues/13)
   - [Redirect组件](https://github.com/andyChenAn/frontEnd/issues/16)
+  - [BrowserRouter组件](https://github.com/andyChenAn/frontEnd/issues/17)
 - 4、 [react服务端渲染](https://github.com/andyChenAn/frontEnd/issues/14)
 - 5、 [react组件代码分割](https://github.com/andyChenAn/frontEnd/issues/15)
