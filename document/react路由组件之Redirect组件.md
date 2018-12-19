@@ -1,8 +1,5 @@
 # react路由组件之Redirect组件
-- 1、withRouter高阶组件有什么用？
-  - 主要用于获取路由属性的（history，location，match），如果想要获取路由属性，只需要用withRouter来包装一下就可以了。比如：withRouter(ReactComponent)
-- 2、Redirect组件
-  - Redirect组件用于重定向，当我们进行某些操作时，会先让登录才能操作，如果我们操作时还没有登录，那么就会重定向到登录页面进行登录操作。
+Redirect组件用于重定向，当我们进行某些操作时，会先让登录才能操作，如果我们操作时还没有登录，那么就会重定向到登录页面进行登录操作。
 
 ```javascript
 import React, { Component } from 'react';
