@@ -19,5 +19,6 @@
   - 1、 [Redirect组件](https://github.com/andyChenAn/frontEnd/issues/16)
   - 2、 [BrowserRouter组件](https://github.com/andyChenAn/frontEnd/issues/17)
   - 3、 [Link组件](https://github.com/andyChenAn/frontEnd/issues/18)
+  - 4、 [Route组件](https://github.com/andyChenAn/frontEnd/issues/19)
 - 4、 [react服务端渲染](https://github.com/andyChenAn/frontEnd/issues/14)
 - 5、 [react组件代码分割](https://github.com/andyChenAn/frontEnd/issues/15)
