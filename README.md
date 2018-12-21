@@ -21,5 +21,6 @@
   - 3、 [Link组件](https://github.com/andyChenAn/frontEnd/issues/18)
   - 4、 [Route组件](https://github.com/andyChenAn/frontEnd/issues/19)
   - 5、 [Prompt组件](https://github.com/andyChenAn/frontEnd/issues/20)
+  - 6、 [Switch组件](https://github.com/andyChenAn/frontEnd/issues/21)
 - 4、 [react服务端渲染](https://github.com/andyChenAn/frontEnd/issues/14)
 - 5、 [react组件代码分割](https://github.com/andyChenAn/frontEnd/issues/15)
