@@ -24,3 +24,4 @@
   - 6、 [Switch组件](https://github.com/andyChenAn/frontEnd/issues/21)
 - 4、 [react服务端渲染](https://github.com/andyChenAn/frontEnd/issues/14)
 - 5、 [react组件代码分割](https://github.com/andyChenAn/frontEnd/issues/15)
+- 6、 [redux介绍](https://github.com/andyChenAn/frontEnd/issues/22)
