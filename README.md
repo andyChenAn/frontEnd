@@ -3,17 +3,17 @@
 ## 目录
 ### 前端杂谈
 - 1、 [JavaScript跨域访问](https://github.com/andyChenAn/frontEnd/issues/1)
-- 3、 [前端异常捕获与上报](https://github.com/andyChenAn/frontEnd/issues/3)
+- 2、 [前端异常捕获与上报](https://github.com/andyChenAn/frontEnd/issues/3)
 ### Javascript
-- 4、 [函数节流与防抖](https://github.com/andyChenAn/frontEnd/issues/4)
-- 5、 [简单前端模板实现](https://github.com/andyChenAn/frontEnd/issues/5)
-- 6、 [数组去重](https://github.com/andyChenAn/frontEnd/issues/6)
-- 7、 [浅拷贝和深拷贝](https://github.com/andyChenAn/frontEnd/issues/7)
-- 8、 [函数柯里化](https://github.com/andyChenAn/frontEnd/issues/8)
+- 1、 [函数节流与防抖](https://github.com/andyChenAn/frontEnd/issues/4)
+- 2、 [简单前端模板实现](https://github.com/andyChenAn/frontEnd/issues/5)
+- 3、 [数组去重](https://github.com/andyChenAn/frontEnd/issues/6)
+- 4、 [浅拷贝和深拷贝](https://github.com/andyChenAn/frontEnd/issues/7)
+- 5、 [函数柯里化](https://github.com/andyChenAn/frontEnd/issues/8)
 ### Nodejs
-- 2、 [http缓存](https://github.com/andyChenAn/frontEnd/issues/2)
-- 9、 [长轮询和短轮询](https://github.com/andyChenAn/frontEnd/issues/9)
-- 10、 [http代理](https://github.com/andyChenAn/frontEnd/issues/10)
+- 1、 [http缓存](https://github.com/andyChenAn/frontEnd/issues/2)
+- 2、 [长轮询和短轮询](https://github.com/andyChenAn/frontEnd/issues/9)
+- 3、 [http代理](https://github.com/andyChenAn/frontEnd/issues/10)
 ### React.js部分
 - 1、 [react组件](https://github.com/andyChenAn/frontEnd/issues/11)
 - 2、 [react组件生命周期](https://github.com/andyChenAn/frontEnd/issues/12)
