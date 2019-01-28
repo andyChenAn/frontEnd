@@ -11,6 +11,7 @@
 - 4、 [浅拷贝和深拷贝](https://github.com/andyChenAn/frontEnd/issues/7)
 - 5、 [函数柯里化](https://github.com/andyChenAn/frontEnd/issues/8)
 - 6、 [call和apply方法](https://github.com/andyChenAn/frontEnd/issues/23)
+- 7、 [bind方法](https://github.com/andyChenAn/frontEnd/issues/24)
 ### Nodejs
 - 1、 [http缓存](https://github.com/andyChenAn/frontEnd/issues/2)
 - 2、 [长轮询和短轮询](https://github.com/andyChenAn/frontEnd/issues/9)
