@@ -34,9 +34,10 @@ class App extends Component {
 	}
 }
 ```
-2、调用render函数来渲染组件，这个函数一定会有一个返回值，返回的是一个React元素或者null。这里仅仅只是返回一个React元素，并没有将组件挂载到DOM树上。一般我们在这里可以通过this.state和this.props来控制返回的React元素。
+2、调用componentWillMount函数。
+3、调用render函数来渲染组件，这个函数一定会有一个返回值，返回的是一个React元素或者null。这里仅仅只是返回一个React元素，并没有将组件挂载到DOM树上。一般我们在这里可以通过this.state和this.props来控制返回的React元素。
 
-3、调用componentDidMount函数，这个函数会在组件被挂载到DOM树之后调用。一般我们会在这里通过请求来获取数据和绑定事件监听函数。
+4、调用componentDidMount函数，这个函数会在组件被挂载到DOM树之后调用。一般我们会在这里通过请求来获取数据和绑定事件监听函数。
 
 ```javascript
 class App extends Component {
@@ -79,7 +80,9 @@ class App extends Component {
 ### 更新过程
 我们通过修改组件的props和state来更新组件。更新过程会触发以下声明周期函数：
 
-1、会调用shouldComponentUpdate(nextProps , nextState)函数，这个函数接受两个参数，一个是改变后的props，一个是改变后的state，调用该返回必须返回一个布尔值，如果是false，表示不需要重新渲染组件（不会调用render函数），如果是true，表示需要重新渲染组件（会调用render函数）。一般会在这里进行优化。
+1、当props改变时，会触发componentWillReceiveProps函数。
+
+2、会调用shouldComponentUpdate(nextProps , nextState)函数，这个函数接受两个参数，一个是改变后的props，一个是改变后的state，调用该返回必须返回一个布尔值，如果是false，表示不需要重新渲染组件（不会调用render函数），如果是true，表示需要重新渲染组件（会调用render函数）。一般会在这里进行优化。
 
 ```javascript
 class Button extends Component {
@@ -139,7 +142,9 @@ class App extends Component {
 ```
 上面的shouldComponentUpdate函数中，如果返回false，那么当我们点击按钮时，不会加1，因为不会调用render函数进行重新渲染，并且也不会触发componentDidUpdate函数，如果返回true，那么点击按钮时，会加1。
 
-2、如果shouldComponentUpdate函数返回true，那么会调用render函数，进行渲染。这个地方会重新创建react元素，并绑定最新的props和state。
+3、如果shouldComponentUpdate函数返回true，那么会调用componentWillUpdate函数。
+
+4、调用render函数，进行渲染。这个地方会重新创建react元素，并绑定最新的props和state。
 
 ```javascript
 class App extends Component {
@@ -174,7 +179,7 @@ class App extends Component {
 }
 ```
 
-3、会调用componentDidUpdate函数，这个函数表示React组件已经更新完成了。
+5、会调用componentDidUpdate函数，这个函数表示React组件已经更新完成了。
 ### 卸载过程
 
 当我们不需要一个组件时，我们可以把组件从DOM树上删除，在删除前的这个时候会触发componentWillUnmount函数。在这个函数我们一般会去解绑事件，删除定时器，或者其他一些没有用的变量等，主要是为了防止内存泄漏。
