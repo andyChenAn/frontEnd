@@ -216,3 +216,47 @@ function fn () {
 }
 ```
 4、不定长参数
+### 剩余参数，默认参数和解构赋值参数
+arguments可以和剩余参数，默认参数和解构赋值参数结合一起使用。
+
+在严格模式下，剩余参数，默认参数和解构赋值参数的存在不会影响arguments的行为，但是在非严格模式下，就会有所不同。
+
+在非严格模式下，函数没有包含剩余参数，默认参数和解构赋值参数，那么arguments中的值会跟踪参数的值，比如：
+
+```javascript
+// 当我们不管是修改函数参数的值还是修改arguments对象的值，都会跟着一起改变
+function fn1 (a) {
+    a = 2;
+    console.log(arguments[0])   // 2
+}
+fn1(1);
+
+function fn2 (a) {
+    arguments[0] = 2;
+    console.log(a);      // 2
+}
+fn2(1);
+```
+在非严格模式下，函数有包含剩余参数，默认参数和解构赋值参数，那么arguments中的值不会跟踪参数的值，比如：
+
+```javascript
+// 函数包含默认参数，当我们需修改参数的值时，arguments中的值不会跟着改变
+function fn1 (a = 1) {
+    a = 2;
+    console.log(arguments[0])    // 3
+}
+fn1(3);
+
+// 或者
+function fn2 (a = 1) {
+    arguments[0] = 2;
+    console.log(a);    // 3
+}
+fn2(3);
+
+// 或者
+function fn3 (a = 1) {
+    console.log(arguments[0])   // undefined
+}
+fn3();
+```
