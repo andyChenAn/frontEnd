@@ -214,3 +214,25 @@ function injectEventPluginsByName(injectedNamesToPlugins) {
 **plugins ：**
 
 ![image](https://github.com/andyChenAn/frontEnd/raw/master/images/react/16.png)
+
+##### extractEvents
+extractEvents方法内部就是循环plugins数组，然后调用相应plugin的extractEvents方法，而这个方法就是用来构造合成事件的，我们这里以click事件为例，click事件对应的plugin就是SimpleEventPlugin，那么就会调用SimpleEventPlugin.extractEvents方法，在这个方法内部会通过事件类型，来判断具体执行哪个合成事件的构造函数。而click事件对应的合成事件的构造函数就是SyntheticUIEvent，SyntheticUIEvent是SyntheticUIEvent的子类，SyntheticUIEvent是SyntheticEvent的子类，它们之间是通过SyntheticEvent的extends方法来实现继承的。
+
+
+
+
+
+##### getPooledEvent
+该方法是从事件对象池中提取事件，将事件缓存在对象池中，可以降低对象的创建和销毁时间，提高性能。
+```javascript
+function getPooledEvent(dispatchConfig, targetInst, nativeEvent, nativeInst) {
+  var EventConstructor = this;
+  if (EventConstructor.eventPool.length) {
+    var instance = EventConstructor.eventPool.pop();
+    EventConstructor.call(instance, dispatchConfig, targetInst, nativeEvent, nativeInst);
+    return instance;
+  }
+  return new EventConstructor(dispatchConfig, targetInst, nativeEvent, nativeInst);
+}
+```
+第一次触发click事件的时候，事件对象池中是空的，对象池中没有对应的合成事件引用，那么就需要new EventConstructor来初始化合成事件对象，之后就不需要初始化了。直接通过eventPool.pop()来获取就可以了。
