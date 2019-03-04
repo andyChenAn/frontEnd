@@ -36,4 +36,4 @@
 - 7、 [react状态传递](https://github.com/andyChenAn/frontEnd/issues/28)
 - 8、 [react虚拟DOM](https://github.com/andyChenAn/frontEnd/issues/29)
 - 9、 [react的首次渲染](https://github.com/andyChenAn/frontEnd/issues/30)
-- 10、 [react的首次渲染(未完待续)](https://github.com/andyChenAn/frontEnd/issues/31)
+- 10、 [react的事件机制(未完待续)](https://github.com/andyChenAn/frontEnd/issues/31)
