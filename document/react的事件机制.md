@@ -216,11 +216,30 @@ function injectEventPluginsByName(injectedNamesToPlugins) {
 ![image](https://github.com/andyChenAn/frontEnd/raw/master/images/react/16.png)
 
 ##### extractEvents
-extractEvents方法内部就是循环plugins数组，然后调用相应plugin的extractEvents方法，而这个方法就是用来构造合成事件的，我们这里以click事件为例，click事件对应的plugin就是SimpleEventPlugin，那么就会调用SimpleEventPlugin.extractEvents方法，在这个方法内部会通过事件类型，来判断具体执行哪个合成事件的构造函数。而click事件对应的合成事件的构造函数就是SyntheticUIEvent，SyntheticUIEvent是SyntheticUIEvent的子类，SyntheticUIEvent是SyntheticEvent的子类，它们之间是通过SyntheticEvent的extends方法来实现继承的。
-
-
-
-
+extractEvents方法内部就是循环plugins数组，然后调用相应plugin的extractEvents方法，而这个方法就是用来构造合成事件的，我们这里以click事件为例，click事件对应的plugin就是SimpleEventPlugin，那么就会调用SimpleEventPlugin.extractEvents方法，在这个方法内部会通过事件类型，来判断具体执行哪个合成事件的构造函数。而click事件对应的合成事件的构造函数就是SyntheticMouseEvent，SyntheticMouseEvent是SyntheticUIEvent的子类，SyntheticUIEvent是SyntheticEvent的子类，它们之间是通过SyntheticEvent的extends方法来实现继承的。
+```javascript
+SyntheticEvent.extend = function (Interface) {
+    var Super = this;
+    
+    var E = function () {};
+    E.prototype = Super.prototype;
+    var prototype = new E();
+    
+    function Class() {
+        return Super.apply(this, arguments);
+    }
+    _assign(prototype, Class.prototype);
+    Class.prototype = prototype;
+    Class.prototype.constructor = Class;
+    
+    Class.Interface = _assign({}, Super.Interface, Interface);
+    Class.extend = Super.extend;
+    addEventPoolingTo(Class);
+    
+    return Class;
+};
+```
+上面代码中，extend方法内部使用的是寄生组合式继承。让EventConstructor继承SyntheticEvent上的属性和方法。
 
 ##### getPooledEvent
 该方法是从事件对象池中提取事件，将事件缓存在对象池中，可以降低对象的创建和销毁时间，提高性能。
@@ -235,4 +254,41 @@ function getPooledEvent(dispatchConfig, targetInst, nativeEvent, nativeInst) {
   return new EventConstructor(dispatchConfig, targetInst, nativeEvent, nativeInst);
 }
 ```
-第一次触发click事件的时候，事件对象池中是空的，对象池中没有对应的合成事件引用，那么就需要new EventConstructor来初始化合成事件对象，之后就不需要初始化了。直接通过eventPool.pop()来获取就可以了。
+第一次触发click事件的时候，事件对象池中是空的，对象池中没有对应的合成事件引用，那么就需要new EventConstructor来初始化合成事件对象，之后就不需要初始化了。直接通过eventPool.pop()来获取就可以了。当调用new EventConstructor这个子类，那么就会调用到父类SyntheticEvent的构造函数，开始构造合成事件，主要就是将原生浏览器事件上的属性和方法挂载到合成事件上，方法的话主要是preventDefault和stopPropagation。
+
+我们知道react的事件都是委托到document上面，所以这里调用event.stopPropagation()，其实阻止的是事件继续向document或者fragment的父元素传播。那么react是怎么做到与原生浏览器事件一样的行为呢？我们这里看一下stopPropagation是怎么处理的：
+
+```
+  stopPropagation: function () {
+    var event = this.nativeEvent;
+    if (!event) {
+      return;
+    }
+
+    if (event.stopPropagation) {
+      event.stopPropagation();
+    } else if (typeof event.cancelBubble !== 'unknown') {
+      event.cancelBubble = true;
+    }
+    this.isPropagationStopped = functionThatReturnsTrue;
+  },
+```
+上面代码中，比较简单，获取事件对象，然后调用事件对象的stopPropagation()来阻止事件向上冒泡，最重要的是最后一句代码，相当于是设置了一个标志位，对于冒泡事件来说，当事件触发，由子元素往父元素逐级向上遍历，会按顺序执行每层元素对应的事件回调，但如果发现当前元素对应的合成事件上的 isPropagationStopped为true值，则遍历的循环将中断，也就是不再继续往上遍历，当前元素的所有父元素的合成事件就不会被触发，最终的效果，就和浏览器原生事件调用 e.stopPropagation()的效果是一样的。
+
+##### accumulateTwoPhaseDispatches
+当获取到合成事件对象后，就会调用accumulateTwoPhaseDispatches方法
+
+![image](https://github.com/andyChenAn/frontEnd/raw/master/images/react/17.png)
+
+如上图，accumulateTwoPhaseDispatches方法内部具体做了哪些事情：
+- 调用forEachAccumulated方法
+  - 变量所有的合成事件，执行accumulateTwoPhaseDispatchesSingle方法
+- 调用accumulateTwoPhaseDispatchesSingle方法
+  - 检查当前事件是否具有冒泡阶段或捕获节点，如果有，那么就调用traverseTwoPhase方法
+- 调用traverseTwoPhase方法
+  - 从当前元素开始向上遍历当前元素所有父元素，并将其保存在数组中，并且分别按照事件捕获和事件冒泡的顺序执行accumulateDirectionalDispatches方法
+- 调用accumulateDirectionalDispatches方法
+  - 调用listenerAtPhase方法获取对应的事件回调函数。
+  - 将事件回调函数和实例（这里的实例其实是一个FiberNode）挂载到事件对象的属性上。
+
+当拿到与事件相关的实例和回调函数之后，那么就可以对合成事件进行批量处理了。
