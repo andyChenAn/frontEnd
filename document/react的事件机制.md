@@ -4,29 +4,42 @@ react的事件机制，主要分为两个阶段：事件注册和事件分发。
 举个例子：
 
 ```javascript
+// 这个例子中，既有事件冒泡阶段，也有事件捕获阶段
+// event._dispatchListeners中保存了所有事件回调函数（包括捕获阶段和冒泡阶段）
+// event._dispatchInstances中保存了当前事件的目标元素及其父元素（FiberNode）
 class App extends Component {
-    constructor() {
-        super();
-        this.state = {
-            count : 0
-        };
+    constructor (props) {
+        super(props);
     }
-    add = () => {
-        this.setState({
-            count : this.state.count + 1
-        })
+    add = (evt) => {
+        console.log(1);
     }
-    render() {
+    add1 = () => {
+        console.log(23);
+    }
+    add2 = () => {
+        console.log('capture');
+    }
+    delete = () => {
+        console.log('delete');
+    }
+    render () {
         return (
             <div>
-                <p>{this.state.count}</p>
-                <button onClick={this.add}>add</button>
+                <div onClick={this.add1} onClickCapture={this.add2}>
+                    <button onClick={this.add}>add</button>
+                    <button onClick={this.delete}>delete</button>
+                </div>
             </div>
         )
     }
 }
 export default App;
 ```
+打印event._dispatchListeners和event._dispatchInstances的结果
+
+![image](https://github.com/andyChenAn/frontEnd/raw/master/images/react/18.png)
+
 ### 事件注册
 以上面的例子为例，我们来看一下button这个元素对应的虚拟DOM中的props对象有哪些属性：
 
@@ -292,3 +305,114 @@ function getPooledEvent(dispatchConfig, targetInst, nativeEvent, nativeInst) {
   - 将事件回调函数和实例（这里的实例其实是一个FiberNode）挂载到事件对象的属性上。
 
 当拿到与事件相关的实例和回调函数之后，那么就可以对合成事件进行批量处理了。
+
+##### runEventsInBatch
+
+```javascript
+function runEventsInBatch(events) {
+    // 如果当前事件存在，那么就将当前事件和之前还没有处理完毕的事件进行合并，组成一个新的事件队列
+    if (events !== null) {
+        eventQueue = accumulateInto(eventQueue, events);
+    }
+    
+    var processingEventQueue = eventQueue;
+    eventQueue = null;
+    
+    if (!processingEventQueue) {
+        return;
+    }
+    
+    forEachAccumulated(processingEventQueue, executeDispatchesAndReleaseTopLevel);
+    !!eventQueue ? invariant(false, 'processEventQueue(): Additional events were enqueued while processing an event queue. Support for this has not yet been implemented.') : void 0;
+    rethrowCaughtError();
+}
+```
+
+runEventsInBatch方法，首先会调用accumulateInto方法将当前需要处理的事件和之前还没有处理完毕的事件队列合并在一起，组成一个新的事件队列。
+
+然后调用forEachAccumulated方法，在这个方法中，会判断processingEventQueue这个事件队列是不是一个数组，如果是一个数组，那么就遍历这个数组，调用executeDispatchesAndReleaseTopLevel方法，如果不是一个数组，那么就直接调用executeDispatchesAndReleaseTopLevel方法。
+
+##### executeDispatchesAndReleaseTopLevel
+
+```javascript
+var executeDispatchesAndReleaseTopLevel = function (e) {
+  return executeDispatchesAndRelease(e);
+};
+
+var executeDispatchesAndRelease = function (event) {
+  if (event) {
+    executeDispatchesInOrder(event);
+
+    if (!event.isPersistent()) {
+      event.constructor.release(event);
+    }
+  }
+};
+```
+executeDispatchesAndReleaseTopLevel方法内部调用executeDispatchesAndRelease方法，而executeDispatchesAndRelease方法内部会先调用executeDispatchesInOrder方法
+##### executeDispatchesInOrder
+
+```javascript
+function executeDispatchesInOrder(event) {
+    // 获取事件捕获阶段和事件冒泡阶段的所有事件回调函数
+    var dispatchListeners = event._dispatchListeners;
+    // 获取事件对应的FiberNode
+    var dispatchInstances = event._dispatchInstances;
+    {
+        validateEventDispatches(event);
+    }
+    if (Array.isArray(dispatchListeners)) {
+        for (var i = 0; i < dispatchListeners.length; i++) {
+            if (event.isPropagationStopped()) {
+                break;
+            }
+            executeDispatch(event, dispatchListeners[i], dispatchInstances[i]);
+        }
+    } else if (dispatchListeners) {
+        executeDispatch(event, dispatchListeners, dispatchInstances);
+    }
+    event._dispatchListeners = null;
+    event._dispatchInstances = null;
+}
+```
+该方法中，先获取当前事件触发目标对象的事件捕获阶段和事件冒泡阶段的所有事件回调函数，以及事件对象对应的FiberNode。如果dispatchListeners是一个数组，那么就遍历这个数组，并且判断当前事件是否调用stopPropagation方法来阻止事件冒泡，如果有的话就退出循环，然后调用executeDispatch方法，如果dispatchListeners不是一个数组并且存在的话，那么就直接调用executeDispatch方法。
+
+##### executeDispatch
+
+```javascript
+function executeDispatch(event, listener, inst) {
+    var type = event.type || 'unknown-event';
+    event.currentTarget = getNodeFromInstance(inst);
+    invokeGuardedCallbackAndCatchFirstError(type, listener, undefined, event);
+    event.currentTarget = null;
+}
+```
+这个方法会获取事件类型，和事件的目标对象。然后一层层调用各种方法：
+
+```
+invokeGuardedCallbackAndCatchFirstError方法—>invokeGuardedCallback方法—>invokeGuardedCallbackImpl$1方法—>invokeGuardedCallbackImpl方法
+```
+##### invokeGuardedCallbackImpl
+```javascript
+var invokeGuardedCallbackImpl = function (name, func, context, a, b, c, d, e, f) {
+    var funcArgs = Array.prototype.slice.call(arguments, 3);
+    try {
+        func.apply(context, funcArgs);
+    } catch (error) {
+        this.onError(error);
+    }
+};
+```
+这里主要就是执行事件回调函数了，到此事件执行就完毕了。当事件执行完了之后，就会调用EventConstructor.release方法（就是调用releasePooledEvent方法）来释放事件对象并清理内存。
+##### releasePooledEvent
+```javascript
+function releasePooledEvent(event) {
+    var EventConstructor = this;
+    !(event instanceof EventConstructor) ? invariant(false, 'Trying to release an event instance into a pool of a different type.') : void 0;
+    event.destructor();
+    if (EventConstructor.eventPool.length < EVENT_POOL_SIZE) {
+        EventConstructor.eventPool.push(event);
+    }
+}
+```
+上面代码中，调用event.destructor方法清理掉event事件对象上的属性（常见的手动释放内存的方法就是将对象置为null），然后把清理后的event事件对象再放入到事件对象池中。
