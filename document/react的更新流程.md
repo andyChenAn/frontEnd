@@ -104,4 +104,42 @@ function appendUpdateToQueue(queue, update) {
   }
 }
 ```
+##### 测试用例：
 
+```javascript
+import React, { Component } from 'react';
+
+class App extends Component {
+    constructor (props) {
+        super(props);
+        this.state = {
+            count : 0
+        }
+    }
+    add = (evt) => {
+        this.setState({
+            count : this.state.count + 1
+        })
+    }
+    render () {
+        return (
+            <div>
+                <p>{this.state.count}<span>3245</span></p>
+                <button onClick={this.add}>add</button>
+            </div>
+        )
+    }
+}
+
+export default App;
+```
+当我们首次渲染完之后，再点击按钮时，会触发add事件回调函数，然后会执行setState方法，setState方法内部主要就是创建一个update对象，然后将这个update对象挂载到updateQueue中，当事件回调函数执行完之后，才会执行具体的组件更新操作。
+```javascript
+if (!isBatchingUpdates && !isRendering) {
+  performSyncWork();
+}
+```
+当执行完事件回调函数之后，这个时候事件回调已经执行完了，所以isBatchingUpdates是false，而当页面首次渲染完之后，isRendering也是fasle（页面也没有进行其他渲染），所以这个时候就会执行performSyncWork方法，处理组件更新。
+```
+performSyncWork方法—>performWork方法—>performWorkOnRoot方法—>renderRoot方法
+```
