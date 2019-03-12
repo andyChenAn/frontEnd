@@ -141,5 +141,21 @@ if (!isBatchingUpdates && !isRendering) {
 ```
 当执行完事件回调函数之后，这个时候事件回调已经执行完了，所以isBatchingUpdates是false，而当页面首次渲染完之后，isRendering也是fasle（页面也没有进行其他渲染），所以这个时候就会执行performSyncWork方法，处理组件更新。
 ```
-performSyncWork方法—>performWork方法—>performWorkOnRoot方法—>renderRoot方法
+performSyncWork方法—>performWork方法—>performWorkOnRoot方法—>renderRoot方法—>workLoop方法—>performUnitOfWork方法—>beginWork方法
 ```
+我们发现这里更新组件的方式和组件在进行第一次初始化的时候类似。这里主要的更新工作都是在==beginWork方法==中进行。
+### beginWork
+在beginWork方法中，主要是做以下几件事情（这里以上面的例子为例来说明）：
+- 判断fiberNode的tag值，根据不同的tag值，做相应的处理。不同的tag值，代表不同的React元素类型。从上面的例子中，我们看出App是一个classComponent，所以会调用updateClassComponent方法。
+- updateClassComponent方法内部会判断当前的FiberNode是否存在stateNode属性，如果不存在，表示该组件是第一次渲染，如果存在，那么表示该组件不是第一次渲染，而是调用setState方法来执行组件更新操作，这个时候会调用updateClassInstance方法。
+- 从命名中我们可以看出，updateClassInstance方法就是更新组件实例。内部主要是通过fiberNode.updateQueue获取当前fiberNode的更新队列，然后调用processUpdateQueue方法，来更新队列中的数据。
+- processUpdateQueue方法内部，先是克隆一个updateQueue的副本，然后获取updateQueue中的firstUpdate对象（update对象里面的payload属性就保存了调用setState方法需要更新的数据），然后循环遍历firstUpdate对象（注意：update对象是一个单链表结构，里面有一个next属性，表示的是下一个update对象，当更新完第一个update对象，那么就会通过update.next获取下一个update对象，直到update.next的值为null）
+- 具体的update更新是执行getStateFromUpdate方法，在getStateFromUpdate方法内部，通过判断update对象的tag值来执行相应的更新（update对象有四种更新类型，当前有0~3，分别是UpdateState、ReplaceState、ForceUpdate、CaptureUpdate），这里的更新主要是调用_assign({}, prevState, partialState)方法，将对象进行合并，返回一个合并后的新对象。当更新完update对象后，又会判断调用setState方法时，有没有传入第二个参数（即回调函数），如果有，那么会将这个update添加到updateQueue的firstEffect和lastEffect上。
+- 通过update.next获取下一个update对象，执行上面的操作，直到update.next的值为null为止。
+- 当所有的update更新完之后，就会将更新后的数据赋值给updateQueue.baseState，清空updateQueue中的firstUpdate，lastUpdate。并将更新后的数据赋值给fiberNode.memoizedState，将currentlyProcessingQueue赋值为null，表示当前正在处理的队列已经处理完了。
+- 处理完updateQueue之后，那么表示更新数据的操作就已经执行完了，这个时候就会调用getDerivedStateFromProps生命周期钩子。
+- 然后调用checkShouldComponentUpdate方法来检查是否需要更新组件，如果组件存在shouldComponentUpdate方法，内部会调用生命周期函数shouldComponentUpdate方法，这里如果调用shouldComponentUpdate方法，就必须返回一个结果（一般是true或false），如果没有返回结果，那么会抛出异常，默认是返回true，需要更新组件。
+- 如果需要更新组件，那么shouldUpdate值为true，那么就会调用componentWillUpdate生命周期钩子。
+- 最后会更新组件实例的props，state，context。
+- 然后调用finishClassComponent方法，这个方法内部会判断shouldUpdate的值，如果是false，那么表示组件不需要更新，直接调用bailoutOnAlreadyFinishedWork，并返回，如果为true，那么就会调用组件市里的render方法，返回一个React元素。
+- 调用reconcileChildren方法，进行diff算法，找出组件需要更新的部分进行更新。
