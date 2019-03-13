@@ -188,5 +188,19 @@ while (node !== null) {
 
 ![image](https://github.com/andyChenAn/frontEnd/raw/master/images/react/10.png)
 
-## 提交阶段
+### 提交阶段
 提交阶段，主要就是执行一些周期函数，和DOM操作的阶段。
+
+```
+invokeGuardedCallback方法—>commitAllHostEffects方法—>然后根据effectTag来执行相应的操作(placement , update , deletion等)—>commitWork方法—>commitUpdate方法
+```
+### commitUpdate方法
+
+```javascript
+function commitUpdate(domElement, updatePayload, type, oldProps, newProps, internalInstanceHandle) {
+    // 就是执行相应的更新操作
+    updateFiberProps(domElement, newProps);
+    updateProperties(domElement, updatePayload, type, oldProps, newProps);
+}
+```
+updateProperties方法内部其实就是执行DOM操作。
