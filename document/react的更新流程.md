@@ -145,7 +145,9 @@ performSyncWork方法—>performWork方法—>performWorkOnRoot方法—>renderR
 
 当循环调用performUnitOfWork方法完之后，就会调用completeUnitOfWork方法
 ```
+
 我们发现这里更新组件的方式和组件在进行第一次初始化的时候类似。这里主要的更新工作都是在==beginWork方法==中进行。
+
 ### beginWork
 在beginWork方法中，主要是做以下几件事情（这里以上面的例子为例来说明）：
 - 判断fiberNode的tag值，根据不同的tag值，做相应的处理。不同的tag值，代表不同的React元素类型。从上面的例子中，我们看出App是一个classComponent，所以会调用updateClassComponent方法。
@@ -162,6 +164,200 @@ performSyncWork方法—>performWork方法—>performWorkOnRoot方法—>renderR
 - 然后调用finishClassComponent方法，这个方法内部会判断shouldUpdate的值，如果是false，那么表示组件不需要更新，直接调用bailoutOnAlreadyFinishedWork，并返回，如果为true，那么就会调用组件市里的render方法，返回一个React元素。
 
 beginWork方法，主要做的工作就是计算数据更新。当所有的更新都做完之后，那么才会进入到diff阶段，找出元素中更新的部分进行更新。
+
+### reconcileChildren方法
+diff阶段，就是通过调用这个方法来协调子节点，找出需要更新的部分，进行更新。在diff过程中，会根据子节点的tag属性来判断当前节点的类型，然后执行相应的操作。以我们当前的例子为例，首先会计算App，然后计算App的第一个子节点（div），然后是div的第一个子节点（p）
+
+- App：tag属性值是ClassComponent，所以执行updateClassComponent方法，这里表示的是React元素
+- div：tag属性值是HostComponent，所以执行updateHostComponent方法，这里就表示的是html元素
+- p：tag属性值是HostComponent，所以执行updateHostComponent方法，这里就表示的是html元素
+  - p的children属性的值是一个数字1，那么nextChildren设置为null，再调用reconcileChildren方法，这个时候表示p下面是没有子节点的，所以不需要协调，直接返回null。
+
+#### updateHostComponent方法
+
+```javascript
+function updateHostComponent(current$$1, workInProgress, renderExpirationTime) {
+    pushHostContext(workInProgress);
+
+    if (current$$1 === null) {
+    tryToClaimNextHydratableInstance(workInProgress);
+    }
+    
+    // 获取相关属性值
+    var type = workInProgress.type;
+    // 获取下一个props对象
+    var nextProps = workInProgress.pendingProps;
+    // 获取上一个props对象
+    var prevProps = current$$1 !== null ? current$$1.memoizedProps : null;
+    // 获取子节点
+    var nextChildren = nextProps.children;
+    // 判断这个子节点是不是文本节点，如果是，为true，否则，为false
+    var isDirectTextChild = shouldSetTextContent(type, nextProps);
+    
+    // 如果这个子节点是一个文本节点，那么nextChildren设置为null，表示该节点的下面已经没有子节点了
+    if (isDirectTextChild) {
+        nextChildren = null;
+    // 如果在更新之前这个节点的子节点是一个文本节点，那么我们需要重置文本内容
+    } else if (prevProps !== null && shouldSetTextContent(type, prevProps)) {
+        // If we're switching from a direct text child to a normal child, or to
+        // empty, we need to schedule the text content to be reset.
+        workInProgress.effectTag |= ContentReset;
+    }
+
+    markRef(current$$1, workInProgress); // Check the host config to see if the children are offscreen/hidden.
+
+    if (renderExpirationTime !== Never && workInProgress.mode & ConcurrentMode && shouldDeprioritizeSubtree(type, nextProps)) {
+        // Schedule this fiber to re-render at offscreen priority. Then bailout.
+        workInProgress.expirationTime = workInProgress.childExpirationTime = Never;
+        return null;
+    }
+    // 协调子节点
+    reconcileChildren(current$$1, workInProgress, nextChildren, renderExpirationTime);
+    return workInProgress.child;
+}
+
+function reconcileChildren(current$$1, workInProgress, nextChildren, renderExpirationTime) {
+    // 如果是没有渲染的新的组件，那么我们就直接将它添加到workInProgress子节点中，就不用去diff了
+    // 这里我们需要注意的是：nextChildren变量的值是通过调用instance.render()返回的
+    if (current$$1 === null) {
+        workInProgress.child = mountChildFibers(workInProgress, null, nextChildren, renderExpirationTime);
+    } else {
+        workInProgress.child = reconcileChildFibers(workInProgress, current$$1.child, nextChildren, renderExpirationTime);
+    }
+}
+
+```
+##### reconcileChildFibers
+
+```
+function reconcileChildFibers(returnFiber, currentFirstChild, newChild, expirationTime) {
+
+    var isUnkeyedTopLevelFragment = typeof newChild === 'object' && newChild !== null && newChild.type === REACT_FRAGMENT_TYPE && newChild.key === null;
+
+    if (isUnkeyedTopLevelFragment) {
+      newChild = newChild.props.children;
+    } // Handle object types
+    
+    // 如果新的子节点是一个对象
+    var isObject = typeof newChild === 'object' && newChild !== null;
+
+    // 如果子节点是React元素或者ReactDOM.createPortal创建的元素
+    if (isObject) {
+        switch (newChild.$$typeof) {
+            case REACT_ELEMENT_TYPE:
+            return placeSingleChild(reconcileSingleElement(returnFiber, currentFirstChild, newChild, expirationTime));
+        
+            case REACT_PORTAL_TYPE:
+            return placeSingleChild(reconcileSinglePortal(returnFiber, currentFirstChild, newChild, expirationTime));
+        }
+    }
+    
+    // 如果子节点是一个字符串或者数字，那么表示该节点是一个文本节点
+    if (typeof newChild === 'string' || typeof newChild === 'number') {
+        return placeSingleChild(reconcileSingleTextNode(returnFiber, currentFirstChild, '' + newChild, expirationTime));
+    }
+    
+    // 如果子节点是一个数组，那么表示该节点是一个集合（比如说列表项）
+    if (isArray(newChild)) {
+        return reconcileChildrenArray(returnFiber, currentFirstChild, newChild, expirationTime);
+    }
+
+    // 如果子节点是一个迭代器
+    if (getIteratorFn(newChild)) {
+        return reconcileChildrenIterator(returnFiber, currentFirstChild, newChild, expirationTime);
+    }
+    
+    // 如果子节点是一个普通的对象，那么就抛出异常
+    if (isObject) {
+        throwOnInvalidObjectType(returnFiber, newChild);
+    }   
+    
+    // 如果子节点是一个函数，那么也抛出异常，函数不是一个有效的react元素
+    {
+        if (typeof newChild === 'function') {
+            warnOnFunctionType();
+        }
+    }
+    
+    if (typeof newChild === 'undefined' && !isUnkeyedTopLevelFragment) {
+        switch (returnFiber.tag) {
+            case ClassComponent:
+            {
+                {
+                    var instance = returnFiber.stateNode;
+                    
+                    if (instance.render._isMockFunction) {
+                        // We allow auto-mocks to proceed as if they're returning null.
+                        break;
+                    }
+                }
+            }
+            case FunctionComponent:
+            {
+                var Component = returnFiber.type;
+                invariant(false, '%s(...): Nothing was returned from render. This usually means a return statement is missing. Or, to render nothing, return null.', Component.displayName || Component.name || 'Component');
+            }
+        }
+    } // Remaining cases are all treated as empty.
+    // 删除除了第一个子节点之外的剩余节点
+    return deleteRemainingChildren(returnFiber, currentFirstChild);
+}
+```
+
+```
+function reconcileSingleElement(returnFiber, currentFirstChild, element, expirationTime) {
+    var key = element.key;
+    var child = currentFirstChild;
+    
+    while (child !== null) {
+        if (child.key === key) {
+            // 如果不是Fragment，那么就判断当前的第一个子节点和新的子节点的类型是否一样
+            // 如果一样，那么就调用deleteRemainingChildren方法，删除剩余的子节点（这里的剩余的子节点，指的是除了第一个子节点之外的所有的其他兄弟节点），如果没有兄弟节点，就不用管它
+            if (child.tag === Fragment ? element.type === REACT_FRAGMENT_TYPE : child.elementType === element.type) {
+              deleteRemainingChildren(returnFiber, child.sibling);
+              // 调用useFiber方法，克隆一个child副本，并将新的react元素的props（也就是children属性的值）挂载到新建的FiberNode的peddingProps上。
+              var existing = useFiber(child, element.type === REACT_FRAGMENT_TYPE ? element.props.children : element.props, expirationTime);
+              // 更新，新创建的FiberNode的属性
+              existing.ref = coerceRef(returnFiber, child, element);
+              existing.return = returnFiber;
+              {
+                existing._debugSource = element._source;
+                existing._debugOwner = element._owner;
+              }
+              return existing;
+            } else {
+              deleteRemainingChildren(returnFiber, child);
+              break;
+            }
+        } else {
+            deleteChild(returnFiber, child);
+        }
+        child = child.sibling;
+    }
+
+    if (element.type === REACT_FRAGMENT_TYPE) {
+        var created = createFiberFromFragment(element.props.children, returnFiber.mode, expirationTime, element.key);
+        created.return = returnFiber;
+        return created;
+    } else {
+        var _created4 = createFiberFromElement(element, returnFiber.mode, expirationTime);
+        
+        _created4.ref = coerceRef(returnFiber, currentFirstChild, element);
+        _created4.return = returnFiber;
+        return _created4;
+    }
+}
+```
+
+```javascript
+function placeSingleChild(newFiber) {
+    // 如果newFiberNode.alternate为null，那么表示这个节点是新加入的，我们只需要将它插入进来就可以了
+    if (shouldTrackSideEffects && newFiber.alternate === null) {
+        newFiber.effectTag = Placement;
+    }
+    return newFiber;
+}
+```
 
 ### reconcileChildrenArray方法
 该方法表示的是协调当前元素节点下面的子元素是数组的情况，比如说当前元素下面包含多个子元素。我们来看一下源码部分（重点部分）：
@@ -311,7 +507,6 @@ function placeChild(newFiber, lastPlacedIndex, newIndex) {
 
 ```
 ##### 小结：
-
 reconcileChildrenArray方法主要做了以下几件事：
 - 首先检查key，我们在写列表项的时候，都会给列表元素添加一个key属性，来区别不同的列表元素。
 - 然后从第一个子元素开始遍历所有的子元素，并调用updateSlot方法，进行更新操作，其实就是创建一个新的FiberNode。
