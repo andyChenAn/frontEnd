@@ -38,3 +38,4 @@
 - 9、 [react的首次渲染](https://github.com/andyChenAn/frontEnd/issues/30)
 - 10、 [react的事件机制](https://github.com/andyChenAn/frontEnd/issues/31)
 - 11、 [react的更新流程](https://github.com/andyChenAn/frontEnd/issues/32)
+- 12、 [react的diff算法](https://github.com/andyChenAn/frontEnd/issues/33)
