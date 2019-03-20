@@ -9,7 +9,7 @@
 ### component diff
 - 如果是同类型组件，那么就按照原来的策略一层一层的比较虚拟DOM树
 - 如果是不同类型组件，那么就会创建一个新的组件来替换之前的组件（包括子元素）
-```
+```javascript
 function updateElement(returnFiber, current$$1, element, expirationTime) {
     // 如果两个组件的类型相同，那么只需要更新props就可以了
     // 如果两个组件的类型不同，那么就需要重新创建
