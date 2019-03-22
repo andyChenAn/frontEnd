@@ -224,5 +224,5 @@ class App extends Component {
     }
 }
 ```
-![image](https://github.com/andyChenAn/frontEnd/raw/master/images/react/21.png)
+![image](https://github.com/andyChenAn/frontEnd/raw/master/images/react/22.png)
 
