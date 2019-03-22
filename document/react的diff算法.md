@@ -113,7 +113,7 @@ export default App;
 
 从打印结果，我们可以看出，如果是两个不同类型的组件，那么会删除掉之前的组件，然后重新挂载新的组件。
 ### element diff
-当节点处于同一层级时，如果只是移动位置，react会怎么做呢？，我们来举个例子：
+当节点处于同一层级时，react diff提供了三种节点操作，插入，移动，删除，如果只是移动位置，react会怎么做呢？，我们来举个例子：
 
 ```javascript
 class App extends Component {
@@ -226,3 +226,13 @@ class App extends Component {
 ```
 ![image](https://github.com/andyChenAn/frontEnd/raw/master/images/react/22.png)
 
+上面这张图Fenix的是新旧集合存在插入的新节点以及位置不同的情况。
+
+如果新集合中有删除掉的节点，那react的diff是怎么做的呢？
+
+其实比对的过程都是一样，只是多加了一步，就是会判断existingChildren这个map集合中是否还存在剩余的子节点，如果存在，那么表示这些子节点就是需要删除的，那么我们就调用deleteChild方法将子节点执行删除操作。
+
+### 总结：
+- 对于tree diff来说，react只会对tree中同一层级进行比较，不同层级是不会比较的。
+- 对于component diff来说，react会判断component的类型是否相同，如果相同，那么就按照tree diff的方式来进行比较，如果component的类型不相同，那么就直接删除原来的component及其子节点，用新的component来代替。
+- 对于element diff来说，react会通过设置key来对element diff进行优化。
