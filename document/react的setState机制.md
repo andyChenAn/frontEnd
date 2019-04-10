@@ -75,3 +75,39 @@ setState方法到底是不是异步的？这个问题应该是面试react的时�
 
 ![image](https://github.com/andyChenAn/frontEnd/raw/master/images/react/setState1.png)
 
+#### 2、react生命周期钩子函数中的setState
+
+![image](https://github.com/andyChenAn/frontEnd/raw/master/images/react/30.png)
+
+```javascript
+function requestWork(root, expirationTime) {
+  addRootToSchedule(root, expirationTime);
+  // 剩下的工作会被安排在当前这一批渲染的最后
+  // 也就是说，等到所有的状态更新完之后，最后才进行统一的组件更新操作。
+  if (isRendering) {
+    return;
+  }
+
+  // 这里主要是针对react的合成事件触发时的回调函数中执行的更新操作
+  // 在合成事件回调函数中更新所有状态之后，再统一执行组件的更新操作。
+  if (isBatchingUpdates) {
+    if (isUnbatchingUpdates) {
+      nextFlushedRoot = root;
+      nextFlushedExpirationTime = Sync;
+      performWorkOnRoot(root, Sync, false);
+    }
+    return;
+  }
+
+  // 同步操作
+  // 比如直接通过addEventListener绑定事件回调中调用setState方法更新状态
+  // 比如setTimeout定时器回调函数中调用setState方法更新状态
+  // 上面的两种情况，都会直接进行同步操作，也就是说，在调用setState方法后面，立即获取最新状态，是可以获取到的。
+  if (expirationTime === Sync) {
+    performSyncWork();
+  } else {
+    // 异步渲染会走这里
+    scheduleCallbackWithExpirationTime(root, expirationTime);
+  }
+}
+```
