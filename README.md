@@ -19,6 +19,7 @@
 - 8、 [new运算符](https://github.com/andyChenAn/frontEnd/issues/25)
 - 9、 [Arguments对象](https://github.com/andyChenAn/frontEnd/issues/26)
 - 10、[如何创建对象](https://github.com/andyChenAn/frontEnd/issues/27)
+- 11、[ajax](https://github.com/andyChenAn/frontEnd/issues/39)
 ### Nodejs
 - 1、 [http缓存](https://github.com/andyChenAn/frontEnd/issues/2)
 - 2、 [长轮询和短轮询](https://github.com/andyChenAn/frontEnd/issues/9)
