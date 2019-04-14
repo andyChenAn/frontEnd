@@ -37,6 +37,7 @@
 - 4、 [react服务端渲染](https://github.com/andyChenAn/frontEnd/issues/14)
 - 5、 [react组件代码分割](https://github.com/andyChenAn/frontEnd/issues/15)
 - 6、 [redux介绍](https://github.com/andyChenAn/frontEnd/issues/22)
+  - 1、 [react之store介绍](https://github.com/andyChenAn/frontEnd/issues/40)
 - 7、 [react状态传递](https://github.com/andyChenAn/frontEnd/issues/28)
 - 8、 [react虚拟DOM](https://github.com/andyChenAn/frontEnd/issues/29)
 - 9、 [react的首次渲染](https://github.com/andyChenAn/frontEnd/issues/30)
