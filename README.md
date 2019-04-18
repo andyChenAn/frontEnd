@@ -39,6 +39,7 @@
 - 6、 [redux介绍](https://github.com/andyChenAn/frontEnd/issues/22)
   - 1、 [redux之store介绍](https://github.com/andyChenAn/frontEnd/issues/40)
   - 2、 [redux之reducer介绍](https://github.com/andyChenAn/frontEnd/issues/41)
+  - 3、 [redux之中间件介绍](https://github.com/andyChenAn/frontEnd/issues/42)
 - 7、 [react状态传递](https://github.com/andyChenAn/frontEnd/issues/28)
 - 8、 [react虚拟DOM](https://github.com/andyChenAn/frontEnd/issues/29)
 - 9、 [react的首次渲染](https://github.com/andyChenAn/frontEnd/issues/30)
