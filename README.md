@@ -50,3 +50,4 @@
 - 12、 [react的diff算法](https://github.com/andyChenAn/frontEnd/issues/33)
 - 13、 [react的调度机制](https://github.com/andyChenAn/frontEnd/issues/34)
 - 14、 [react的setState机制](https://github.com/andyChenAn/frontEnd/issues/38)
+- 15、 [react测试](https://github.com/andyChenAn/frontEnd/issues/45)
