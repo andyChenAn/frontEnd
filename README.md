@@ -51,3 +51,4 @@
 - 13、 [react的调度机制](https://github.com/andyChenAn/frontEnd/issues/34)
 - 14、 [react的setState机制](https://github.com/andyChenAn/frontEnd/issues/38)
 - 15、 [react测试](https://github.com/andyChenAn/frontEnd/issues/45)
+- 16、 [react组件间通信](https://github.com/andyChenAn/frontEnd/issues/46)
