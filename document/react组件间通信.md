@@ -76,4 +76,36 @@ class Parent extends Component {
 }
 ```
 ## 爷孙组件间的通信
-在react中，爷孙组件指的是祖先组件与子组件之间的通信
+在react中，爷孙组件指的是祖先组件与子组件之间的通信。
+
+- 1、context进行通信
+
+```javascript
+const ThemeContext = React.createContext();
+
+class Child extends Component {
+  constructor (props) {
+    super(props);
+  }
+  render () {
+    return (
+      <ThemeContext.Consumer>
+        {value => <div>{value.name} - {value.age}</div>}
+      </ThemeContext.Consumer>
+    )
+  }
+}
+
+class Parent extends Component {
+  constructor (props) {
+    super(props);
+  }
+  render () {
+    return (
+      <ThemeContext.Provider value={{name : 'andy' , age : 12}}>
+        <Child />
+      </ThemeContext.Provider>
+    )
+  }
+}
+```
