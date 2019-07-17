@@ -131,3 +131,87 @@ class App extends Component {
 export default App;
 
 ```
+- 2、通过eventBus来实现组件间通信
+
+```javascript
+import React, { Component } from 'react';
+
+class EventEmitter {
+  constructor () {
+    this.events = {}
+  }
+  subscribe (name , callback) {
+    if (!this.events[name]) {
+      this.events[name] = [];
+    }
+    this.events[name].push(callback);
+  }
+  publish (name , ...args) {
+    let callbacks = this.events[name];
+    for (let i = 0 ; i < callbacks.length ; i++) {
+      callbacks[i].apply(this , args);
+    }
+  }
+};
+
+const event = new EventEmitter();
+
+class Parent extends Component {
+  constructor (props) {
+    super(props);
+  }
+  componentDidMount () {
+    event.subscribe('hello' , this.handleHello);
+  }
+  handleHello = (msg) => {
+    console.log(msg);
+  }
+  sayChild = () => {
+    event.publish('sayChild' , 'hello , my child');
+  }
+  render () {
+    return (
+      <div>
+        <button onClick={this.sayChild}>父元素的按钮</button>
+        <Middle></Middle>
+      </div>
+    )
+  }
+}
+
+class Middle extends Component {
+  render () {
+    return (
+      <Child></Child>
+    )
+  }
+}
+
+class Child extends Component {
+  hello = () => {
+    event.publish('hello' , 'hello , my parent');
+  }
+  sayChild = (msg) => {
+    console.log(msg);
+  }
+  componentDidMount () {
+    event.subscribe('sayChild' , this.sayChild);
+  }
+  render () {
+    return (
+      <div>
+        <button onClick={this.hello}>子元素的按钮</button>
+      </div>
+    )
+  }
+}
+
+class App extends Component {
+  render() {
+    return (
+      <Parent />
+    )
+  }
+}
+export default App;
+```
