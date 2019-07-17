@@ -82,22 +82,18 @@ class Parent extends Component {
 
 ```javascript
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+
+const ThemeContext = React.createContext({
+  backgroundColor : 'red',
+  color : 'blue'
+});
 
 class Parent extends Component {
-  static childContextTypes = {
-    name : PropTypes.string,
-    age : PropTypes.number
-  }
-  getChildContext () {
-    return {
-      name : 'andychen',
-      age : 23
-    }
-  }
   render () {
     return (
-      <Middle />
+      <ThemeContext.Provider value={{backgroundColor : 'green' , color : 'red'}}>
+        <Middle />
+      </ThemeContext.Provider>
     )
   }
 };
@@ -108,24 +104,22 @@ class Middle extends Component {
       <Child />
     )
   }
-}
+};
 
 class Child extends Component {
-  static contextTypes = {
-    name : PropTypes.string,
-    age : PropTypes.number
-  }
   render () {
-    const { name , age } = this.context;
     return (
-      <div>
-        <div>hello {name}</div>
-        <div>my age is {age}</div>
-      </div>
+      <ThemeContext.Consumer>
+        {context => (
+          <div>
+            <h1 style={{'background-color' : context.backgroundColor}}>my name is andy</h1>
+            <div style={{color : context.color}}>my age is 12</div>
+          </div>
+        )}
+      </ThemeContext.Consumer>
     )
   }
 }
-
 class App extends Component {
   render() {
     return (
@@ -135,4 +129,5 @@ class App extends Component {
 }
 
 export default App;
+
 ```
