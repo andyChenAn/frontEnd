@@ -81,31 +81,58 @@ class Parent extends Component {
 - 1、context进行通信
 
 ```javascript
-const ThemeContext = React.createContext();
-
-class Child extends Component {
-  constructor (props) {
-    super(props);
-  }
-  render () {
-    return (
-      <ThemeContext.Consumer>
-        {value => <div>{value.name} - {value.age}</div>}
-      </ThemeContext.Consumer>
-    )
-  }
-}
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
 class Parent extends Component {
-  constructor (props) {
-    super(props);
+  static childContextTypes = {
+    name : PropTypes.string,
+    age : PropTypes.number
+  }
+  getChildContext () {
+    return {
+      name : 'andychen',
+      age : 23
+    }
   }
   render () {
     return (
-      <ThemeContext.Provider value={{name : 'andy' , age : 12}}>
-        <Child />
-      </ThemeContext.Provider>
+      <Middle />
+    )
+  }
+};
+
+class Middle extends Component {
+  render () {
+    return (
+      <Child />
     )
   }
 }
+
+class Child extends Component {
+  static contextTypes = {
+    name : PropTypes.string,
+    age : PropTypes.number
+  }
+  render () {
+    const { name , age } = this.context;
+    return (
+      <div>
+        <div>hello {name}</div>
+        <div>my age is {age}</div>
+      </div>
+    )
+  }
+}
+
+class App extends Component {
+  render() {
+    return (
+      <Parent />
+    )
+  }
+}
+
+export default App;
 ```
