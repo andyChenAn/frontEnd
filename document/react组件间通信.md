@@ -215,3 +215,172 @@ class App extends Component {
 }
 export default App;
 ```
+## 兄弟组件间通信
+对于兄弟组件来说，一般都存在共同的父节点，可以通过将父节点作为桥梁来实现兄弟组件间的通信，除此之外还可以使用消息中间件，通过发布和订阅消息来实现兄弟组件之间的通信。
+
+- 1、利用共同父节点作为中转来实现兄弟组件间通信
+
+```javascript
+class Brother1 extends Component {
+    constructor (props) {
+        super(props);
+    }
+    send = () => {
+        const { send } = this.props;
+        send('brother1');
+    }
+    render () {
+        const { name } = this.props;
+        return (
+            <div>
+                <h1>brother1</h1>
+                <p>消息：{name}</p>
+                <button onClick={this.send}>发消息给brother2</button>
+            </div>
+        )
+    }
+}
+
+class Brother2 extends Component {
+    constructor (props) {
+        super(props);
+    }
+    send = () => {
+        const { send } = this.props;
+        send('brother2');
+    }
+    render () {
+        const { name } = this.props;
+        return (
+            <div>
+                <h1>brother2</h1>
+                <p>消息：{name}</p>
+                <button onClick={this.send}>发消息给brother1</button>
+            </div>
+        )
+    }
+}
+
+class Parent extends Component {
+    constructor (props) {
+        super(props)
+        this.state = {
+            name : ''
+        }
+    }
+    send = (value) => {
+        this.setState({
+            name : value
+        });
+    }
+    render () {
+        const { name } = this.state;
+        return (
+            <div>
+                <Brother1 name={name} send={this.send} />
+                <Brother2 name={name} send={this.send} />
+            </div>
+        )
+    }
+}
+```
+- 2、通过消息中间件的方式来实现
+
+```javascript
+class EventEmitter {
+    constructor () {
+        this.events = {}
+    }
+    subscribe (name , callback) {
+        if (!this.events[name]) {
+            this.events[name] = [];
+        }
+        this.events[name].push(callback);
+    }
+    publish (name , ...args) {
+        let callbacks = this.events[name];
+        for (let i = 0 ; i < callbacks.length ; i++) {
+            callbacks[i].apply(this , args);
+        }
+    }
+};
+  
+const event = new EventEmitter();
+
+class Brother1 extends Component {
+    constructor (props) {
+        super(props);
+        this.state = {
+            name : ''
+        }
+    }
+    send = () => {
+        event.publish('brother1' , 'hello brother2');
+    }
+    componentDidMount () {
+        event.subscribe('brother2' , value => {
+            this.setState({
+                name : value
+            })
+        })
+    }
+    render () {
+        const { name } = this.state;
+        return (
+            <div>
+                <h1>brother1</h1>
+                <p>消息：{name}</p>
+                <button onClick={this.send}>发消息给brother2</button>
+            </div>
+        )
+    }
+}
+
+class Brother2 extends Component {
+    constructor (props) {
+        super(props);
+        this.state = {
+            name : ''
+        }
+    }
+    send = () => {
+        event.publish('brother2' , 'hello brother1');
+    }
+    componentDidMount () {
+        event.subscribe('brother1' , value => {
+            this.setState({
+                name : value
+            })
+        })
+    }
+    render () {
+        const { name } = this.state;
+        return (
+            <div>
+                <h1>brother2</h1>
+                <p>消息：{name}</p>
+                <button onClick={this.send}>发消息给brother1</button>
+            </div>
+        )
+    }
+}
+
+class Parent extends Component {
+    constructor (props) {
+        super(props)
+    }
+    send = (value) => {
+        this.setState({
+            name : value
+        });
+    }
+    render () {
+        return (
+            <div>
+                <Brother1 />
+                <Brother2 />
+            </div>
+        )
+    }
+}
+```
