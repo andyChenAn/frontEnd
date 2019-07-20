@@ -138,3 +138,80 @@ const AComponent = HOC(OriginComponent);
 ```
 ### 反向继承
 高阶函数接受一个组件作为参数，然后在函数里面返回一个新组件，并且新组件继承传入的组件。
+
+```javascript
+function HOC (WrappedComponent) {
+  return class NewComponent extends WrappedComponent {
+    render () {
+      return super.render();
+    }
+  }
+};
+
+class OriginComponent extends Component {
+  render () {
+    return (
+      <div>hello hoc</div>
+    )
+  }
+};
+
+const AndyComponent = HOC(OriginComponent);
+```
+使用反向继承方式，我们需要注意的是子组件和父组件的执行过程是怎样的？不然的话很容易搞混。
+
+```javascript
+import React, { Component } from 'react';
+
+function HOC (WrappedComponent) {
+  return class NewComponent extends WrappedComponent {
+    test1 () {
+      return this.test2() * 2;
+    }
+    componentDidMount () {
+      console.log('子组件挂载');
+      this.setState({
+        number : 2
+      })
+    }
+    render () {
+      return super.render();
+    }
+  }
+}
+
+class OriginComponent extends Component {
+  constructor (props) {
+    super(props);
+    this.state = {number : 1};
+  }
+  test2 () {
+    return 2;
+  }
+  componentDidMount () {
+    console.log('父组件挂载');
+  }
+  render () {
+    return (
+      <div>
+        {this.state.number}{'and'}
+        {this.test1()}
+        这是原始组件
+      </div>
+    )
+  }
+}
+const AndyComponent = HOC(OriginComponent);
+
+class App extends Component {
+  render() {
+    return (
+      <AndyComponent/>
+    )
+  }
+}
+export default App;
+```
+我们打印一下结果，发现控制台打印了"子组件挂载"。主要是因为当调用componentDidMount方法时，子组件中已经存在这个方法了，如果子组件不存在componentDidMount方法，那么就会找到父组件的componentDidMount方法执行，这里主要是要弄清楚super作为对象调用父类的方法时，方法内部的this指向的是子类实例。
+
+到调用super.render方法时，方法里面的this指向的是子类实例，又因为子类继承父类，所以会执行test2方法，最后的结果就是4。
