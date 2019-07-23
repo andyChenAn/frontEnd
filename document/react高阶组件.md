@@ -18,7 +18,7 @@ function HOC (WrappedComponent) {
 ## 为什么要用高阶组件？
 我觉得主要还是为了代码复用。比如说，有一个需求，我需要获取短评列表数据和长评列表数据并展示在页面上，其实获取数据的逻辑都是一样的，只是获取的接口不一样，正常来说，我们会短评组件上编写处理逻辑，然后再长评组件上编写长评处理逻辑，这样你会发现其实逻辑是一样的，就因为接口不一样，而同样的逻辑写了两遍是不是有点太多余了呢，这个时候我们可以使用高阶组件，来进行代码复用。
 
-```
+```javascript
 const url1 = 'http://localhost:8000/api/shortcomment/short';
 const url2 = 'http://localhost:8000/api/longcomment/long';
 // 高阶组件
