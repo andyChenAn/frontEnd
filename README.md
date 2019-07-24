@@ -54,3 +54,5 @@
 - 16、 [react组件间通信](https://github.com/andyChenAn/frontEnd/issues/46)
 - 17、 [react高阶组件](https://github.com/andyChenAn/frontEnd/issues/47)
 - 18、 [react动画](https://github.com/andyChenAn/frontEnd/issues/48)
+### Vue.js部分
+- 1、 [Vuex基础](https://github.com/andyChenAn/frontEnd/issues/49)
