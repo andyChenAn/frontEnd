@@ -58,3 +58,4 @@
 - 1、 [Vuex基础](https://github.com/andyChenAn/frontEnd/issues/49)
 - 2、 [Vue-Router基础](https://github.com/andyChenAn/frontEnd/issues/50)
 - 3、 [Vue-Router进阶](https://github.com/andyChenAn/frontEnd/issues/51)
+- 4、 [Vue组件](https://github.com/andyChenAn/frontEnd/issues/52)
