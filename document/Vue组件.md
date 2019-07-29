@@ -71,6 +71,93 @@ new Vue({
 ```
 有一点需要注意的是，每个组件都只能有一个根元素，所以一般我们都会将组件的所有内容包裹在一个div里面。
 
+上面代码中，我们只看到了以字符串数组形式列出的prop，当然props也可以是一个对象，一般在我们需要对传入到组件的prop进行数据类型验证的时候，就会用到，prop不仅仅可以是字符串，也可以是数组，是对象，是数字，布尔值等。比如：
+
+```html
+<div id="app">
+    <button @click="changeName">changeName</button>
+    <my-demo :name="name"></my-demo>
+</div>
+```
+
+```javascript
+new Vue({
+    el : '#app',
+    data : {
+        name : 'andy'
+    },
+    methods : {
+        changeName () {
+            this.name = 324;
+        }
+    },
+    components : {
+        'my-demo' : {
+            template : `<div>{{name}}</div>`,
+            props : {
+                name : {
+                    type : String
+                }
+            }
+        }
+    }
+})
+```
+上面代码中，当我们点击按钮时，将name的值改为数字，那么控制台会发出警告：
+```
+vue.js:597 [Vue warn]: Invalid prop: type check failed for prop "name". Expected String, got Number.
+```
+#### prop验证
+当我们通过props来向子组件传递数据的时候，很多时候我们需要对传递过来的数据进行验证，看是否满足我们的要求，此时我们可以将props设置为一个对象，而不是字符串数组，一般我们可以设置这几个字段：type（判断数据类型），default（默认值），required（是否是必须要有的），validator（验证函数）。比如：
+
+```
+props : {
+    prop1 : {
+        type : Boolean
+    },
+    prop2 : {
+        type : String,
+        required : true
+    },
+    prop3 : {
+        type : Number,
+        default : 10
+    },
+    prop4 : {
+        type : String,
+        validator (value) {
+            return value == 'andy';
+        }
+    }
+}
+```
+#### 单向数据流
+prop数据传递是从父组件到子组件的，父组件的prop的更新会流动到子组件中，但是返过来就不行，这样会防止子组件修改父组件的状态，从而导致数据流向难以理解。每次父组件的数据发生更新时，子组件中所有的prop都将更新为最新值，所以我们不应该在子组件内部去改变prop。如果我们需要在子组件内部改变prop，那么一般会有两种情况，第一种情况是将prop作为子组件的一个初始值，第二种情况是以一种原始的值传入且需要进行转换。
+
+```javascript
+export default {
+    props : ['name'],
+    computed : {
+        fullName () {
+            return this.name.toUpperCase();
+        }
+    }
+}
+```
+
+```javascript
+export default {
+    props : ['name'],
+    data () {
+        return {
+            fullName : this.name
+        }
+    }
+}
+```
+这里我们需要注意一点，如果父组件上传递的是class或者style，那么它们会与子组件的根元素的class和style进行合并，而不是替换。
+
+
 ## 监听子组件事件
 上面的代码中，我们看到，如果父组件向子组件传递数据可以使用props，那么如果子组件要向父组件传递数据呢？我们可以通过事件消息的方式向父组件传递数据。
 
