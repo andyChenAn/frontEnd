@@ -62,3 +62,4 @@
 - 5、 [Vue插槽](https://github.com/andyChenAn/frontEnd/issues/53)
 - 6、 [Vue响应式原理](https://github.com/andyChenAn/frontEnd/issues/54)
 - 7、 [Vue事件机制](https://github.com/andyChenAn/frontEnd/issues/55)
+- 8、 [Vue虚拟DOM](https://github.com/andyChenAn/frontEnd/issues/56)
