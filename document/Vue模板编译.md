@@ -342,3 +342,84 @@ id="app">
 </div>
 ```
 2、对截取的字符串做解析，主要是处理标签元素，标签的属性，以及标签的文本内容。
+## 生成render
+当Vue将模板字符串编译成ast后，会调用generate方法，将ast转为render function字符串的过程。
+```
+"_c('div',{attrs:{"id":"app"}},[_c('div',{staticClass:"box",staticStyle:{"font-size":"20px","color":"#f60"},on:{"click":handle}},[_v(_s(name))])])"
+```
+上面代码中，我们看到会有一些_c ，_v，_s等。
+
+```javascript
+// 创建一个VNode节点
+vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false);
+function installRenderHelpers (target) {
+    // 处理v-once的函数
+    target._o = markOnce;
+    // 将字符串转为数字，如果转换失败，那么就返回原来的字符串
+    target._n = toNumber;
+    // 将值转换为字符串
+    target._s = toString;
+    // 处理v-for列表渲染
+    target._l = renderList;
+    // 处理slot渲染
+    target._t = renderSlot;
+    // 判断两个变量是否相等
+    target._q = looseEqual;
+    // 检查数组中是否包含与value变量相等的项
+    target._i = looseIndexOf;
+    // 处理static树的渲染
+    target._m = renderStatic;
+    // 处理filters
+    target._f = resolveFilter;
+    target._k = checkKeyCodes;
+    // 合并v-bind指令到VNode的data中
+    target._b = bindObjectProps;
+    // 创建一个文本节点
+    target._v = createTextVNode;
+    // 创建一个空节点
+    target._e = createEmptyVNode;
+    // 处理scopedSlots
+    target._u = resolveScopedSlots;
+    target._g = bindObjectListeners;
+    target._d = bindDynamicKeys;
+    target._p = prependModifier;
+}
+```
+从上面代码中，我们可以发现，_c其实就是创建一个VNode节点，_v其实就是创建一个文本节点，_s其实就是将value转换为字符串。
+
+Vue将ast转换为一个render函数：
+```javascript
+with(this){return _c('div',{attrs:{"id":"app"}},[_c('div',{staticClass:"box",staticStyle:{"font-size":"20px","color":"#f60"},on:{"click":handle}},[_v(_s(name))])])}
+```
+然后最终会得到一个这样的render函数：
+
+```javascript
+with (this) {
+    return _c(
+        'div',
+        {
+            attrs : {
+                "id" : "app"
+            }
+        },
+        [
+            _c(
+                'div',
+                {
+                    staticClass : 'box',
+                    staticStyle : {
+                        "font-size" : "20px",
+                        "color" : "#f60"
+                    },
+                    on : {
+                        "click" : handle
+                    }
+                },
+                [
+                    _v(_s(name))
+                ]
+            )
+        ]
+    )
+}
+```
