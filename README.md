@@ -64,3 +64,4 @@
 - 7、 [Vue事件机制](https://github.com/andyChenAn/frontEnd/issues/55)
 - 8、 [Vue虚拟DOM](https://github.com/andyChenAn/frontEnd/issues/56)
 - 9、 [Vue模板编译](https://github.com/andyChenAn/frontEnd/issues/57)
+- 10、[Vue挂载](https://github.com/andyChenAn/frontEnd/issues/58)
