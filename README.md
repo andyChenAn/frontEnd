@@ -65,3 +65,4 @@
 - 8、 [Vue虚拟DOM](https://github.com/andyChenAn/frontEnd/issues/56)
 - 9、 [Vue模板编译](https://github.com/andyChenAn/frontEnd/issues/57)
 - 10、[Vue挂载](https://github.com/andyChenAn/frontEnd/issues/58)
+- 11、[Vue更新](https://github.com/andyChenAn/frontEnd/issues/59)
