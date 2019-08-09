@@ -59,15 +59,30 @@ patchVnode方法主要做了以下几件事情：
 - 5、如果新节点和旧节点都没有子节点，但是旧节点有文本内容，那么会清空旧节点的文本内容。
 - 6、如果新节点和旧节点都没有子节点，但是新节点和旧节点都有文本内容，那么会替换文本内容。
 
-```javascript
-0: ƒ updateAttrs(oldVnode, vnode)
-1: ƒ updateClass(oldVnode, vnode)
-2: ƒ updateDOMListeners(oldVnode, vnode)
-3: ƒ updateDOMProps(oldVnode, vnode)
-4: ƒ updateStyle(oldVnode, vnode)
-5: ƒ update(oldVnode, vnode)
-6: ƒ updateDirectives(oldVnode, vnode)
-```
+## updateChildren方法
+该方法是diff算法的核心，首先在新旧两个Vnode树的左右两侧都有一个变量标记，即：
+oldStartVnode，oldEndVnode，newStartVnode，newEndVnode。这四个变量分别代表新旧节点树的第一个节点和最后一个节点。
+
+索引与VNode节点的对应关系： oldStartIdx => oldStartVnode oldEndIdx => oldEndVnode newStartIdx => newStartVnode newEndIdx => newEndVnode
+
+从代码中，我们可以看到oldStartVnode，oldEndVnode和newStartVnode，newEndVnode有4种比较方式。oldStartVnode和newStartVnode，oldStartVnode和newEndVnode，oldEndVnode和newStartVnode，oldEndVnode和newEndVnode。
+
+如果oldStartVnode和newStartVnode或者oldEndVnode和newStartVnode满足sameVnode，那么就直接调用patchVnode方法，对比这两个节点。
+
+如果oldStartVnode和newEndVnode满足sameVnode，那么表示oldStartVnode跑到了oldEndVnode后面去了，在调用patchVnode方法，对比这两个节点之后，还需要调用DOM的insertBefore方法将真实的DOM节点移动到oldEndVnode的后面。
+
+如果oldEndVnode和newStartVnode满足sameVnode，那么表示oldEndVnode跑到了oldStartVnode前面去了，在调用patchVnode方法对比这两个节点之后，还需要调用DOM的insertBefore方法将真实的DOM节点移动到oldStartVnode的前面。
+
+如果都不是上面的情况，那么会调用createKeyToOldIdx方法，得到一张关于旧节点的key的映射表，映射表的结构为：{key1 : index1 , key2 : index2 , ...}，然后我们在映射表中可以找到与newStartVnode节点的key一致的旧的Vnode节点（我们这里称它为：vnodeToMove节点），如果找到了，并且新节点和旧节点满足sameVnode，那么就调用patchVnode方法，对比这两个节点，并且将vnodeToMove移动到oldStartVnode对应的真实DOM的前面。
+
+当然也有可能在旧节点的映射表中没有找到与newStartVnode一致的key，那么就会调用createElm创建一个新的DOM节点。
+
+以上就是while循环里面需要做的事情，剩下我们还需要处理多余或者不够的真实DOM节点。
+
+当while循环结束时，oldStartIdx > oldEndIdx，这就表示旧的节点已经遍历完了，但是新节点还没有，说明新节点实际上是要比旧节点多，那么就将剩下的节点插入到真实的DOM节点中，调用addVnodes方法，批量调用createElm方法将这些剩余的节点插入到DOM中。
+
+当while循环结束时，newStartIdx > newEndIdx，表示新的节点已经遍历完了，但是旧节点还有剩余，说明存在多余的DOM节点，那么我们就需要就多余的DOM节点删除，这时候调用removeVnodes方法，将多余的DOM节点删除。
+
 ## updateAttrs方法
 该方法主要是更新节点的属性
 ```javascript
