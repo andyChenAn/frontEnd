@@ -66,3 +66,4 @@
 - 9、 [Vue模板编译](https://github.com/andyChenAn/frontEnd/issues/57)
 - 10、[Vue挂载](https://github.com/andyChenAn/frontEnd/issues/58)
 - 11、[Vue更新](https://github.com/andyChenAn/frontEnd/issues/59)
+- 12、[Vue生命周期](https://github.com/andyChenAn/frontEnd/issues/60)
