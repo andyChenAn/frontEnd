@@ -233,11 +233,52 @@ if (Dep.target) {
 我们来看一下上面这种情况的具体流程是怎样的？
 
 当页面P引用了一个计算属性C，而C又引用了D。
-- 1、当页面渲染时，由于页面P读取计算属性C，Dep.target会设置为页面watcher，所以计算属性C收集了页面watcher。
-- 2、读取computed C，第一次会进行计算，computed-watcher.evaluted 被调用，进而 computed-watcher.get 被调用，Dep.target会被设置为computed watcher，旧值 页面 watcher 被缓存起来。
-- 2、在获取计算属性值的时候，由于计算属性C依赖数据D，在获取D数据的值的时候(调用get方法)，数据D会收集computed watcher。
-- 3、computed 计算会读取 data，此时 data 就收集到 computed-watcher同时 computed-watcher 也会保存到 data 的依赖收集器 dep（用于下一步）。
-- 4、手动 watcher.depend， 让 data 再收集一次 Dep.target，于是 data 又收集到 恢复了的页面watcher。
+- 1、当组件进行一系列初始化之后，就会调用$mount方法，将组件挂载到相应的dom上，而在调用mountComponent函数内部，就会创建页面watcher
+
+```javascript
+function mountComponent (vm,el,hydrating) {
+    updateComponent = function () {
+        vm._update(vm._render(), hydrating);
+    };
+    // 创建页面watcher，当数据发生变化，就会调用watcher的getter方法，而这里是将updateComponent保持在getter上，所以就会调用updateComponent方法，进行更新
+    new Watcher(vm, updateComponent, noop, {
+        before: function before () {
+            if (vm._isMounted && !vm._isDestroyed) {
+                callHook(vm, 'beforeUpdate');
+            }
+        }
+    }, true /* isRenderWatcher */);
+}
+
+var Watcher = function Watcher (vm,expOrFn,cb,options,isRenderWatcher) {
+    // watcher的选项的默认值都是false
+    if (options) {
+        this.deep = !!options.deep;
+        this.user = !!options.user;
+        this.lazy = !!options.lazy;
+        this.sync = !!options.sync;
+        this.before = options.before;
+    } else {
+        this.deep = this.user = this.lazy = this.sync = false;
+    }
+    this.getter = expOrFn;
+    // 在创建页面watcher的时候，一开始默认值都是false，所以会执行this.get()方法，从而调用watcher.get()
+    this.value = this.lazy ? undefined : this.get();
+}
+
+Watcher.prototype.get = function get () {
+    // 而此时，这里的this指的是页面watcher，所以Dep.target是页面watcher
+    // 并且会把页面watcher缓存起来
+    pushTarget(this);
+    var value;
+    var vm = this.vm;
+    // 当调用watcher.getter方法，其实就是执行updateComponent方法，所以开始执行渲染更新。
+    // 而在执行渲染的过程中，在渲染模板时，会读取模板中的数据，那么这个时候又会进行依赖收集
+    value = this.getter.call(vm, vm);
+}
+```
+- 2、computed被读取，createComputedGetter包装的函数触发，第一次进行计算，那么computed-watcher.evaluted被调用，从而 computed-watcher.get 被调用，这个时候Dep.target被设置为computed watcher，而页面watcher被缓存在targetStack这个数组中。所以此时的targetStack数组中的值为： [页面watcher，computed watcher]。
+- 3、computed 计算会读取 data，此时 data 就收集到 computed-watcher，同时 computed-watcher 也会保存到 data 的依赖收集器 dep（用于下一步）。
 
 ```javascript
 Watcher.prototype.get = function get () {
@@ -255,4 +296,23 @@ Object.defineProperty(obj , key , {
         }
     }
 });
+```
+- 4、手动 watcher.depend， 让 data 再收集一次 Dep.target，于是 data 又收集到 恢复了的页面watcher。（当读取computed之后，也就是调用watcher.get之后，那么在watcher.get方法内部会调用pushTarget(this); popTarget()，而调用popTarget就是在targetStack数组中将最后一个删除，而这时的Dep.target被设置为上一个watcher，也就是页面watcher，所以这里会让data再收集一次Dep.target，而此时的Dep.target是页面watcher，所以data也就收集到了页面watcher，当data数据发生变化时，就会调用notify方法，通知收集到的所有的watcher更新，也就是说data数据变化了，不是先通知computed，再由computed通知页面，而是直接通知页面）
+
+```javascript
+function createComputedGetter (key) {
+    return function computedGetter () {
+        var watcher = this._computedWatchers && this._computedWatchers[key];
+        if (watcher) {
+            if (watcher.dirty) {
+                watcher.evaluate();
+            }
+            // 
+            if (Dep.target) {
+                watcher.depend();
+            }
+            return watcher.value
+        }
+    }
+}
 ```
