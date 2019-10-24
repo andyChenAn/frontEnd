@@ -70,3 +70,4 @@
 - 13、[Vue计算属性](https://github.com/andyChenAn/frontEnd/issues/61)
 - 14、[Vue的混入](https://github.com/andyChenAn/frontEnd/issues/62)
 - 15、[Vue的插槽原理](https://github.com/andyChenAn/frontEnd/issues/63)
+- 16、[Vue的props](https://github.com/andyChenAn/frontEnd/issues/64)
