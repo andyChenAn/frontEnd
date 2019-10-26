@@ -2,6 +2,83 @@
 
 混入 (mixin) 提供了一种非常灵活的方式，来分发Vue组件中的可复用功能。一个混入对象可以包含任意组件选项。当组件使用混入对象时，所有混入对象的选项将被“混合”进入该组件本身的选项。
 
+### 全局混入
+
+当我们调用Vue.mixin()方法的时候，我们可以把需要的东西全局混入到每一个Vue实例上。我们来看下具体代码：
+
+```javascript
+Vue.mixin = function (mixin) {
+    // 这里的this指的是Vue。
+    // this.options指的是Vue.options
+    this.options = mergeOptions(this.options, mixin);
+    return this
+};
+
+var ASSET_TYPES = [
+    'component',
+    'directive',
+    'filter'
+];
+
+Vue.options = Object.create(null);
+ASSET_TYPES.forEach(function (type) {
+    Vue.options[type + 's'] = Object.create(null);
+});
+
+Vue.options._base = Vue;
+```
+上面代码，主要做了以下几件事情：
+- 1、我们可以创建全局组件，全局指令，全局过滤器
+- 2、我们可以调用Vue.mixin方法进行全局混入
+- 3、全局混入也就是把需要的东西混入到全局的options中(Vue.options)
+
+##### mergeOptions方法:
+
+mergeOptions方法的作用是将两个options合并成一个新的options。
+
+```javascript
+function mergeOptions (parent,child,vm) {
+    // ... 省略代码
+    if (!child._base) {
+        if (child.extends) {
+            parent = mergeOptions(parent, child.extends, vm);
+        }
+        // 如果存在mixins字段，那么我们就可以mixins中的数据全部合并到parent上
+        if (child.mixins) {
+            for (var i = 0, l = child.mixins.length; i < l; i++) {
+                parent = mergeOptions(parent, child.mixins[i], vm);
+            }
+        }
+    }
+    
+    var options = {};
+    var key;
+    // 先处理parent上的key
+    // 调用mergeField方法，就是为了获取处理key对应的合并策略
+    for (key in parent) {
+        mergeField(key);
+    }
+    // 遍历child上的key，排除掉已经在parent上处理过的key
+    // 留下的只是parent上没有处理过的key，然后获取这些key对应的合并策略
+    // 因为parent上已经有了child上存在的key的合并策略，所以就不需要再处理了
+    for (key in child) {
+        if (!hasOwn(parent, key)) {
+            mergeField(key);
+        }
+    }
+    // 拿到相应key的合并策略函数，进行合并字段
+    function mergeField (key) {
+        var strat = strats[key] || defaultStrat;
+        options[key] = strat(parent[key], child[key], vm, key);
+    }
+    // 最终返回合并后的对象
+    return options
+}
+```
+
+
+
+
 ### 处理data混入
 
 Vue在处理data混入的时候，如果混入的data与组件本身的data存在同名的属性，那么Vue会优先使用组件本身的属性，而不会使用混入的属性。
