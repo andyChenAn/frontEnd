@@ -71,4 +71,5 @@
 - 14、[Vue的混入](https://github.com/andyChenAn/frontEnd/issues/62)
 - 15、[Vue的插槽原理](https://github.com/andyChenAn/frontEnd/issues/63)
 - 16、[Vue的props](https://github.com/andyChenAn/frontEnd/issues/64)
-- 17、[Vue的事件](https://github.com/andyChenAn/frontEnd/issues/65)
+- 17、[Vue的事件之绑定原生DOM事件](https://github.com/andyChenAn/frontEnd/issues/65)
+- 18、[Vue的事件之绑定组件DOM事件](https://github.com/andyChenAn/frontEnd/issues/66)
