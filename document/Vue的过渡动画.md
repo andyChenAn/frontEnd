@@ -57,3 +57,70 @@ Vue的过渡动画，我们可以使用Vue提供的transition组件来实现。
 
 所以上面的解释也说明了，我们在写过渡样式的时候，并没有写==.fade-enter-to== 也会知道元素的结束状态，而只需要添加transition属性就可以了。其实这也是利用了FLIP技术来实现过渡动画效果。
 
+### CSS动画
+CSS动画的用法和CSS过渡相同，区别是在动画中v-enter类名在节点插入DOM后不会立即删除，而是animationend事件触发时删除。
+
+### javascript动画钩子
+
+我们可以在transition组件中声明javascript钩子，其实也就是绑定相应的事件
+```html
+<transition
+  v-on:before-enter="beforeEnter"
+  v-on:enter="enter"
+  v-on:after-enter="afterEnter"
+  v-on:enter-cancelled="enterCancelled"
+
+  v-on:before-leave="beforeLeave"
+  v-on:leave="leave"
+  v-on:after-leave="afterLeave"
+  v-on:leave-cancelled="leaveCancelled"
+>
+  <!-- ... -->
+</transition>
+```
+
+```javascript
+// ...
+methods: {
+  // --------
+  // 进入中
+  // --------
+
+  beforeEnter: function (el) {
+    // ...
+  },
+  // 当与 CSS 结合使用时
+  // 回调函数 done 是可选的
+  enter: function (el, done) {
+    // ...
+    done()
+  },
+  afterEnter: function (el) {
+    // ...
+  },
+  enterCancelled: function (el) {
+    // ...
+  },
+
+  // --------
+  // 离开时
+  // --------
+
+  beforeLeave: function (el) {
+    // ...
+  },
+  // 当与 CSS 结合使用时
+  // 回调函数 done 是可选的
+  leave: function (el, done) {
+    // ...
+    done()
+  },
+  afterLeave: function (el) {
+    // ...
+  },
+  // leaveCancelled 只用于 v-show 中
+  leaveCancelled: function (el) {
+    // ...
+  }
+}
+```
