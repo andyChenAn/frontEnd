@@ -403,3 +403,139 @@ function enter (vnode, toggleDisplay) {
     }
 }
 ```
+### leave
+
+leave函数会在remove的时候执行。
+
+```javascript
+function leave (vnode, rm) {
+    var el = vnode.elm;
+
+    // call enter callback now
+    if (isDef(el._enterCb)) {
+        el._enterCb.cancelled = true;
+        el._enterCb();
+    }
+    
+    // 将transition组件的数据传递给resolveTransition函数，最后解析得到一个过渡需要的数据，保存在data中
+    /** {
+        enterActiveClass: "fade-enter-active"
+        enterClass: "fade-enter"
+        enterToClass: "fade-enter-to"
+        leaveActiveClass: "fade-leave-active"
+        leaveClass: "fade-leave"
+        leaveToClass: "fade-leave-to"
+        name: "fade"
+    } */
+    var data = resolveTransition(vnode.data.transition);
+    if (isUndef(data) || el.nodeType !== 1) {
+        return rm()
+    }
+
+    if (isDef(el._leaveCb)) {
+        return
+    }
+    
+    // 获取过渡样式类和过渡钩子
+    var css = data.css;
+    var type = data.type;
+    var leaveClass = data.leaveClass;
+    var leaveToClass = data.leaveToClass;
+    var leaveActiveClass = data.leaveActiveClass;
+    var beforeLeave = data.beforeLeave;
+    var leave = data.leave;
+    var afterLeave = data.afterLeave;
+    var leaveCancelled = data.leaveCancelled;
+    var delayLeave = data.delayLeave;
+    var duration = data.duration;
+    
+    // 过渡动画是否受 css 影响，推荐对于仅使用 JavaScript 过渡的元素添加 v-bind:css="false"，Vue 会跳过 CSS 的检测。这也可以避免过渡过程中 CSS 的影响。
+    // 用户是否想介入控制 css 动画，我们可以在文档中看到，在enter钩子和leave钩子中的参数必须要传入一个回调函数done，而且必须调用done
+    var expectsCSS = css !== false && !isIE9;
+    var userWantsControl = getHookArgumentsLength(leave);
+    
+    // 获取过渡动画时长
+    var explicitLeaveDuration = toNumber(
+    isObject(duration)
+        ? duration.leave
+        : duration
+    );
+
+    if (isDef(explicitLeaveDuration)) {
+        checkDuration(explicitLeaveDuration, 'leave', vnode);
+    }
+    
+    // 回调函数，这个会在leave钩子调用的时候，作为参数传入到leave钩子函数中，也就是vue文档中提到的在enter和leave的钩子中，必须使用done进行回调
+    var cb = el._leaveCb = once(function () {
+        if (el.parentNode && el.parentNode._pending) {
+            el.parentNode._pending[vnode.key] = null;
+        }
+        if (expectsCSS) {
+            removeTransitionClass(el, leaveToClass);
+            removeTransitionClass(el, leaveActiveClass);
+        }
+        if (cb.cancelled) {
+            if (expectsCSS) {
+                removeTransitionClass(el, leaveClass);
+            }
+            leaveCancelled && leaveCancelled(el);
+        } else {
+            rm();
+            afterLeave && afterLeave(el);
+        }
+        el._leaveCb = null;
+    });
+
+    if (delayLeave) {
+        delayLeave(performLeave);
+    } else {
+        performLeave();
+    }
+
+    function performLeave () {
+    // the delayed leave may have already been cancelled
+    if (cb.cancelled) {
+        return
+    }
+    // record leaving element
+    if (!vnode.data.show && el.parentNode) {
+        (el.parentNode._pending || (el.parentNode._pending = {}))[(vnode.key)] = vnode;
+    }
+    // 离场过渡前调用beforeLeave钩子
+    beforeLeave && beforeLeave(el);
+    // 开始离场过渡动画
+    if (expectsCSS) {
+        // 添加离场过渡样式类
+        addTransitionClass(el, leaveClass);
+        addTransitionClass(el, leaveActiveClass);
+        nextFrame(function () {
+            // 在离开过渡动画生效时的下一帧删除leaveClass
+            removeTransitionClass(el, leaveClass);
+            if (!cb.cancelled) {
+                // 在离开过渡动画生效时的下一帧添加leaveToClass
+                addTransitionClass(el, leaveToClass);
+                // 是否有人为控制css，估计一般用于钩子函数
+                // 一般都没有人为的去控制css，那么离场过渡动画会在duration时间结束，或者会监听dom的transitionend或animationend事件，当该事件触发的时候，也就表示离场过渡动画结束
+                if (!userWantsControl) {
+                    if (isValidDuration(explicitLeaveDuration)) {
+                    setTimeout(cb, explicitLeaveDuration);
+                    } else {
+                    whenTransitionEnds(el, type, cb);
+                    }
+                }
+            }
+        });
+    }
+    // 调用leave钩子
+    leave && leave(el, cb);
+    if (!expectsCSS && !userWantsControl) {
+        cb();
+    }
+}
+```
+### 总结
+- 1、transition组件是Vue内部的一个抽象组件。
+- 2、transition组件的核心功能就是给渲染的组件提供进场和离场过渡动画效果。
+- 3、Vue内部的Transition对象定义的属性会在创建vnode的时候将属性合并到options中。也就是在执行createComponent函数时（Ctor = baseCtor.extend(Ctor)）
+- 4、创建transition组件的时候，会调用Transition对象中的render方法来进行渲染，返回transition组件的子节点。
+- 5、当数据发生变化是，就会执行组件的更新函数，进行更新，此时就会触发transition组件的create，activate，remove这三个钩子函数，create，activate钩子会调用enter函数（进场过渡动画），而remove会调用leave函数（离场过渡动画）。
