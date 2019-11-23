@@ -75,3 +75,4 @@
 - 18、[Vue的事件之绑定组件DOM事件](https://github.com/andyChenAn/frontEnd/issues/66)
 - 19、[Vue的过渡动画](https://github.com/andyChenAn/frontEnd/issues/67)
 - 20、[Vue的Transition组件实现原理](https://github.com/andyChenAn/frontEnd/issues/68)
+- 21、[Vue的事件之绑定组件自定义事件](https://github.com/andyChenAn/frontEnd/issues/69)
