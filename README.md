@@ -78,3 +78,4 @@
 - 21、[Vue的事件之绑定组件自定义事件](https://github.com/andyChenAn/frontEnd/issues/69)
 - 22、[Vue的nextTick](https://github.com/andyChenAn/frontEnd/issues/70)
 - 23、[Vue模板编译之从创建实例到模板编译的主要流程](https://github.com/andyChenAn/frontEnd/issues/72)
+- 24、[Vue模板编译之parse](https://github.com/andyChenAn/frontEnd/issues/73)
