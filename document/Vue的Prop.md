@@ -43,6 +43,82 @@ function initProps (vm, propsOptions) {
 - 2、给props的key设置响应式
 - 3、给props设置代理，我们可以直接通过vm.xx的方式来访问props的属性值
 
+### 父组件是怎么传值给子组件的props的？
+
+```html
+<div class="aa">
+    <test :name="name"></test>
+</div>
+```
+上面代码，父组件模板会被解析为渲染函数
+
+```javascript
+(function() {    
+    with(this){  
+        return _c('div',{staticClass:"aa"},[
+            _c('test',{attrs:{"name":name}})
+        ],1)
+    }
+})
+```
+当执行这个渲染函数的时候，with绑定的作用域是父组件的作用域，所以当调用
+
+```javascript
+_c('test',{attrs:{"name":name}})
+```
+渲染test子组件的时候，this.name其实就是父组件上定义的name字段，这样的话，子组件就拿到了父组件的数据。
+
+test组件是一个外壳组件，外壳组件中保存着父组件传递给子组件的数据，比如，props，listeners，children等，都是保存在外壳组件的componentOptions属性上。当Vue在创建test组件的时候，首先也是调用Vue.prototype._init方法进行初始化，在初始化的时候，会判断是不是一个自定义的组件，如果是的话，就会调用initInternalComponent函数。
+
+```javascript
+Vue.prototype._init = function (options) {
+    // ...省略代码
+    if (options && options._isComponent) {
+        initInternalComponent(vm, options);
+    }
+}
+```
+这个函数的主要作用就是：将外壳组件中，父组件传递给子组件的数据都保存到子组件实例的$options对象上。
+
+然后会调用initState(vm)函数，对组件的数据进行初始化，其中就会调用initProps
+
+```javascript
+if (opts.props) { initProps(vm, opts.props); }
+```
+在initProps函数中，会把props的数据都保存在组件实例的_props对象上，然后设置_props的属性为响应式，所有的props属性，都会被保存在组件实例的_props上，并且会设置props的代理拦截，也就是，当我们使用this.name来访问props属性值时，其实访问的this._props.name。
+
+### 父组件数据发生变化时，怎么通知子组件更新？
+
+当每一个组件渲染的时候，都会存在一个组件watcher，而这个watcher就是用来组件更新，以及用来给该组件依赖的数据来保存，这样当组件依赖的数据发生变化的时候，那么就会通知所有依赖这个数据的组件进行更新。
+
+```html
+<div class="aa">
+    <test :name="name"></test>
+</div>
+```
+```javascript
+(function() {    
+    with(this){  
+        return _c('div',{staticClass:"aa"},[
+            _c('test',{attrs:{"name":name}})
+        ],1)
+    }
+})
+```
+在父组件第一次调用渲染函数进行渲染的时候，会读取父组件上的name属性，而此时的name属性已经被设置为响应式了，所以在读取name属性的时候，会触发name属性的get方法，这个时候name属性的依赖收集器就会收集父组件的watcher，用于当name属性发生变化时，更新父组件。
+
+所以当name属性发生变化的时候，就会通知父组件的watcher更新，那么又会调用渲染函数，进行更新渲染
+
+```javascript
+(function() {    
+    with(this){  
+        return _c('div',{staticClass:"aa"},[
+            _c('test',{attrs:{"name":name}})
+        ],1)
+    }
+})
+```
+
 我们通过一个简单的例子来看一下具体是怎么更新的？
 
 ```javascript
