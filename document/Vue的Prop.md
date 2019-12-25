@@ -118,36 +118,12 @@ if (opts.props) { initProps(vm, opts.props); }
     }
 })
 ```
-
-我们通过一个简单的例子来看一下具体是怎么更新的？
-
-```javascript
-const vm = new Vue({
-    el : '#app',
-    data : {
-        name : 'andy'
-    },
-    components : {
-        test : {
-            props : ['name'],
-            template : '<div>hello {{name}}</div>'
-        }
-    },
-    created () {
-        
-    },
-    methods : {
-        change () {
-            this.name = 'jack';
-        }
-    }
-})
-```
-上面这个例子中，父组件传递name给子组件，当父组件的name发生变化时，会将变化的name通过props传递给子组件。updateChildComponent函数是子组件内部更新时会调用到的一个函数
+当父组件执行渲染函数进行更新时，就会把新的数据传递给子组件，子组件拿到新的数据，就会替换原来的props，updateChildComponent函数是子组件内部更新时会调用到的一个函数。
 
 ```javascript
 function updateChildComponent(vm,propsData,listeners,parentVnode,renderChildren) {
     if (propsData && vm.$options.props) {
+        // vm._props在第一次初始化组件的时候，就已经设置响应式了。
         var props = vm._props;
         // 遍历子组件上的props的key
         var propKeys = vm.$options._propKeys || [];
@@ -156,12 +132,16 @@ function updateChildComponent(vm,propsData,listeners,parentVnode,renderChildren)
             var propOptions = vm.$options.props; 
             // 更新props属性上的值
             // 这里会触发props属性的set方法，从而会通知所有的依赖该属性的监听器更新
+            // 而子组件就依赖于这个props中的key，所以当props中的key对应的值发生变化时，就会触发props对象中的key的set方法，那么就会通知依赖这个数据的子组件进行更新
             props[key] = validateProp(key, propOptions, propsData, vm);
         }
         vm.$options.propsData = propsData;
     }
 }
 ```
+子组件依赖props中的key，所以key变化了，就会触发子组件进行更新，从而就会调用_update方法进行更新。
+
+
 当父组件的属性发生变化时，新的数据会通过props传递给子组件，然后子组件直接进行赋值操作，由于子组件的_props属性已经在初始化props的时候设置了响应式，那么这个时候就会触发该属性的set方法，从而会通知子组件的监听器更新，从而会进行渲染更新。所以当props传递的基本数据类型，那么会由子组件内部的 _props通知子组件更新。
 
 上面这种情况属于当props传递的基本数据类型，如果props是引用类型，那么是怎么操作的呢？如果父组件props传递到子组件的数据是一个引用类型，那么是由父组件的数据data通知子组件更新的。
