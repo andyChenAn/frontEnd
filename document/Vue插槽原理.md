@@ -204,3 +204,54 @@ function resolveSlots (children,context) {
 }
 ```
 当子组件完成初始化之后，会将子组件的模板编译成渲染函数：
+
+```javascript
+with(this){return _c('div',[_t("default")],2)}
+```
+
+当我们调用 "_t('default')"的时候，其实调用的是renderSlot('default'):
+
+```javascript
+function renderSlot (name,fallback,props,bindObject) {
+    // 作用域插槽
+    var scopedSlotFn = this.$scopedSlots[name];
+    var nodes;
+    // 如果是作用域插槽
+    if (scopedSlotFn) { // scoped slot
+        props = props || {};
+        if (bindObject) {
+            if (!isObject(bindObject)) {
+                warn(
+                    'slot v-bind without argument expects an Object',
+                    this
+                );
+            }
+            props = extend(extend({}, bindObject), props);
+        }
+        nodes = scopedSlotFn(props) || fallback;
+    } else {
+        // 普通插槽，直接从$slots中，取出插槽内容
+        nodes = this.$slots[name] || fallback;
+    }
+    
+    var target = props && props.slot;
+    if (target) {
+        return this.$createElement('template', { slot: target }, nodes)
+    } else {
+        return nodes
+    }
+}
+```
+通过调用这个方法，就能获取到插槽内容了，当获取到插槽内容，再调用_c函数
+
+```javascript
+_c('div',['hello andy'],2)
+```
+这样我们就把slot插入到子组件中了，接下来就是将组件渲染成真是DOM。
+
+### 总结
+
+- 1、解析父组件，将父组件的插槽保存在子组件的外壳节点的children中。
+- 2、将外壳节点的children转移到子组件的选项对象的_renderChildren属性上。
+- 3、将子组件的选项对象的_renderChildren属性转移到子组件实例的$slots上。
+- 4、解析子组件，会将子组件内部的<slot>标签转为_t函数，执行_t函数，获取对应的插槽内容。
