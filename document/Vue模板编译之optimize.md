@@ -47,9 +47,9 @@ function isStatic (node) {
     // 如果节点的所有属性都是在type,tag,attrsList,attrsMap,plain,parent,children,attrs属性范围内，都是静态属性，那么会返回true
     return !!(node.pre || (
     !node.hasBindings && 
-    !node.if && !node.for && // not v-if or v-for or v-else
-    !isBuiltInTag(node.tag) && // not a built-in
-    isPlatformReservedTag(node.tag) && // not a component
+    !node.if && !node.for && 
+    !isBuiltInTag(node.tag) &&
+    isPlatformReservedTag(node.tag) &&
     !isDirectChildOfTemplateFor(node) &&
     Object.keys(node).every(isStaticKey)
     ))
@@ -153,3 +153,91 @@ var isStaticKey = function (val) {
 //或者
 var isStaticKey = hit;
 ```
+### markStatic$1函数
+
+markStatic$1函数主要做了以下几件事情：
+- 1、调用isStatic函数，判断当前节点是否为静态节点。
+- 2、遍历节点的所有子节点，如果子节点不是静态的，那么父节点也不是静态的。
+
+```javascript
+function markStatic$1 (node) {
+    // 调用isStatic函数，判断当前节点是否为静态节点
+    node.static = isStatic(node);
+    // 如果是正常的html标签或者自定义标签(组件)
+    if (node.type === 1) {
+      // 如果是组件，并不是html标签，那么不要将组件插槽内容设置为静态
+      // 这样就避免了组件无法更改插槽节点，静态插槽内容无法热加载
+      // 所以如果是一个组件，那么就会直接return
+      // 节点是正常的html标签
+      // 节点的标签是slot
+      // 节点存在inline-template属性
+      // 满足这三个条件中的一个就会往下走，继续进行处理
+        if (
+            !isPlatformReservedTag(node.tag) &&
+            node.tag !== 'slot' &&
+            node.attrsMap['inline-template'] == null
+        ) {
+            return
+        }
+        // 遍历节点的所有子节点，调用MarkStatic$1函数，标记子节点是否为静态节点
+        // 如果子节点不是静态节点，那么父节点也不是静态节点
+        for (var i = 0, l = node.children.length; i < l; i++) {
+            var child = node.children[i];
+            markStatic$1(child);
+            if (!child.static) {
+                node.static = false;
+            }
+        }
+        // 如果节点存在v-if/v-else-if/v-else指令，那么就遍历节点的ifConditions属性，该属性保存了v-if/v-else-if/v-else节点，然后调用markStatic$1函数，继续遍历if条件中的每一个节点中的所有的子节点
+        // 如果子节点不是静态的，那么父节点node也不是静态的
+        if (node.ifConditions) {
+            for (var i$1 = 1, l$1 = node.ifConditions.length; i$1 < l$1; i$1++) {
+                var block = node.ifConditions[i$1].block;
+                markStatic$1(block);
+                if (!block.static) {
+                    node.static = false;
+                }
+            }
+        }
+    }
+}
+```
+### markStaticRoots函数
+
+markStaticRoots函数主要作用就是标记静态根节点。这里说的根节点指的是只要存在子节点，我们就可以把他理解成一个根节点，应该是算是一个区域根节点。如果找到一个根节点是静态根节点后，那么就不会再继续往下面递归查找了，直接return了。
+
+```javascript
+function markStaticRoots (node, isInFor) {
+    if (node.type === 1) {
+        if (node.static || node.once) {
+            node.staticInFor = isInFor;
+        }
+        // 判断根静态是静态的条件是：该节点是静态的，并且存在子节点，并且子节点不仅仅只是一个文本节点
+        // 如果满足条件，那么就标记这个节点为静态根节点，否则为false，不是静态根节点
+        // 如果找到一个根节点是静态根节点后，那么就不会再继续往下面递归查找了，直接return了
+        if (node.static && node.children.length && !(
+            node.children.length === 1 &&
+            node.children[0].type === 3
+        )) {
+            node.staticRoot = true;
+            return
+        } else {
+            node.staticRoot = false;
+        }
+        // 如果存在子节点，遍历子节点，查找谁是静态根节点，如果是的话，就设置staticRoot为true
+        if (node.children) {
+            for (var i = 0, l = node.children.length; i < l; i++) {
+                markStaticRoots(node.children[i], isInFor || !!node.for);
+            }
+        }
+        if (node.ifConditions) {
+            for (var i$1 = 1, l$1 = node.ifConditions.length; i$1 < l$1; i$1++) {
+                markStaticRoots(node.ifConditions[i$1].block, isInFor);
+            }
+        }
+    }
+}
+```
+我们会发现，markStatic$1函数的作用是递归遍历每一个节点，判断节点是否为静态节点，如果是静态节点，那么标记该节点（设置该节点的static属性为true）。markStaticRoots函数的作用是遍历经过判断是否为静态节点处理后的所有节点，如果节点是静态的，并且存在子节点而且子节点不仅仅是一个文本节点，那么就表示这个节点为静态根节点。
+
+也就是说，markStatic$1是为markStaticRoots服务的。只有先判断所有节点是否为静态节点之后，才能更快的找出静态根节点，一旦找到静态根节点，就不会往下继续递归遍历子节点了。
