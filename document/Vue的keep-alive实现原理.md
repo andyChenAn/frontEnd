@@ -112,3 +112,25 @@ var KeepAlive = {
     }
 };
 ```
+### keep-alive组件的渲染
+我们知道keep-alive是一个抽象组件，所以在构建虚拟DOM树时，并不会包含keep-alive组件，所以在将虚拟DOM渲染树渲染成真实DOM树，也不会有keep-alive节点。
+
+那么Vue是怎么检查组件是不是抽象组件呢？其实在组件进行初始化，调用initLifecycle函数时判断了。
+
+```javascript
+function initLifecycle (vm) {
+    // 查找非抽象组件的父组件，然后将这个组件添加到该父组件的$children中
+    var options = vm.$options;
+    var parent = options.parent;
+    if (parent && !options.abstract) {
+      while (parent.$options.abstract && parent.$parent) {
+        parent = parent.$parent;
+      }
+      parent.$children.push(vm);
+    }
+    // ...省略代码
+}
+```
+上面的代码中，会遍历当前实例的父组件，直到找到是非抽象组件的父组件为止。并将实例添加到该父组件的$children中，这样我们就过滤掉了当前实例的父组件是抽象组件的情况，所以抽象组件也就不会被添加到虚拟DOM树中。
+
+### keep-alive包裹的组件是怎么使用缓存的？
