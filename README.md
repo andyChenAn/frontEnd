@@ -83,3 +83,4 @@
 - 26、[Vue模板编译之optimize](https://github.com/andyChenAn/frontEnd/issues/75)
 ### Typescript部分
 - 1、 [接口](https://github.com/andyChenAn/frontEnd/issues/76)
+- 2、 [类](https://github.com/andyChenAn/frontEnd/issues/77)
