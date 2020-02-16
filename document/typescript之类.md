@@ -169,3 +169,100 @@ animal = rhino;
 animal = employee;
 ```
 上面代码中，Rhino继承Animal，所以Rhino里存在一个私有成员name，并且这个name也是在Animal中定义的，所以认为它们两个的类型是兼容的。虽然Employee里有一个私有成员name，但是这个name不是Animal里面定义的那个，所以认为它们两个的类型不兼容。
+#### protected
+protected与private修饰符的行为很相似，但是有一点不同，protected成员在派生类中仍然可以访问。比如：
+
+```javascript
+class Person {
+    protected name : string;
+    constructor (name : string) {
+        this.name = name;
+    }
+}
+class Employee extends Person {
+    private department : string;
+    constructor (name : string , department : string) {
+        super(name);
+        this.department = department;
+    }
+    public getElevatorPitch () {
+        return `hello , my name is ${this.name} and I work in ${this.department}`;
+    }
+}
+let andy = new Employee('Andy' , "Sales");
+console.log(andy.getElevatorPitch());
+// 这里会报错，因为name是受保护的成员，不能在类或者基于这个类的派生类的其他地方访问。
+// 只能在当前类，或者当前类的派生类中访问
+console.log(andy.name);
+```
+构造函数也可以被标记成protected，这意味着这个类不能在包含它的类外被实例化，但是能被继承。
+
+```javascript
+class Person {
+    protected name : string;
+    protected constructor (name : string) {
+        this.name = name;
+    }
+}
+class Employee extends Person {
+    private department : string;
+    constructor (name : string , department : string) {
+        super(name);
+        this.department = department;
+    }
+    public getElevatorPitch () {
+        return `hello , my name is ${this.name} and I work in ${this.department}`;
+    }
+};
+let andy = new Employee('andy' , 'sales');
+// 会报错
+let jack = new Person('jack');
+```
+上面代码中，创建Employee时，不会报错，因为是通过super(name)来调用Person类中的受保护构造函数，并且Employee类继承Person类，是Person类中的一个派生类。所以是可以执行的。创建Person时，会报错，是因为Person类中的构造函数受保护的，所以不能直接在外部访问。
+
+#### readonly
+使用readonly将属性设置为只读的。只读属性必须在声明时或构造函数里被初始化。
+
+```javascript
+class Octopus {
+    readonly name : string;
+    readonly numberOfLegs : number = 8;
+    constructor (name : string) {
+        this.name = name;
+    }
+}
+let dad = new Octopus('Man with the 8 strong legs');
+// 这里会报错，因为name被设置为只读
+// 只能在一开始的时候或者在构造函数内被初始化
+dad.name = 'Man with the 3-piece suit';
+```
+上面代码中，给name赋值会报错，因为name属性被设置为只读属性，只能在声明时或构造函数里被初始化。
+
+
+```javascript
+class Person {
+    readonly name : string;
+    constructor (theName : string) {
+        this.name = theName;
+    }
+}
+let andy = new Person('andy');
+console.log(andy.name);
+```
+上面代码中，Person类中有一个构造函数，这个函数有一个参数，然后函数里会将传入的参数值赋值给name属性。
+
+但是我们可以使用"参数属性"，定义并初始化一个成员，上面的例子，我们可以改写成这样：
+
+```javascript
+class Person {
+    constructor (readonly name : string) {
+        this.name = name;
+    }
+};
+let andy = new Person('andy');
+console.log(andy.name)
+```
+参数属性通过给构造函数参数前面添加一个访问限定符来声明。private，public，protected都一样。
+
+### 存取器
+
