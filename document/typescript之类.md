@@ -265,4 +265,113 @@ console.log(andy.name)
 参数属性通过给构造函数参数前面添加一个访问限定符来声明。private，public，protected都一样。
 
 ### 存取器
+typescript支持通过getters/setters来截取对对象成员的访问。
+```javascript
+class Employee {
+    fullName : string;
+}
+let employee = new Employee();
+employee.fullName = 'Bob Smith';
+if (employee.fullName) {
+    console.log(employee.fullName);
+}
+```
+上面代码中，我们没有使用存取器来访问fullName。下面我们修改一下代码，通过存取器的方式来访问对象成员。
 
+```javascript
+let passcode = 'secret passcode';
+class Employee {
+    private _fullName : string;
+    get fullName () : string {
+        return this._fullName;
+    }
+    set fullName (newName : string) {
+        if (passcode && passcode == 'secret passcode') {
+            this._fullName = newName;
+        } else {
+            console.log('Error : Unauthorized update of employee!');
+        }
+    }
+};
+let employee = new Employee();
+employee.fullName = 'Bob Smith';
+if (employee.fullName) {
+    console.log(employee.fullName);
+};
+```
+这里我们需要注意，存取器要求我们将编辑器设置为es5或更高，不支持降级到ECMAScript3。如果只带有get不带有set的存取器自动被推断为readonly。
+
+```javascript
+let passcode = 'secret passcode';
+class Employee {
+    private _fullName : string;
+    get fullName () : string {
+        return this._fullName;
+    }
+};
+let employee = new Employee();
+// 这里会报错
+employee.fullName = 'andy';
+```
+上面代码中，当我们给fullName赋值时，会报错，因为当只有get而没有set的存取器会被推断为readonly，所以fullName属性是只读的，不能被赋值。
+
+### 静态属性
+静态属性，存在于类本身上面而不是类的实例上面。
+
+```javascript
+class Person {
+    static firstName = 'andy';
+    constructor (public age : number) {}
+    say () {
+        console.log(`my name is ${Person.firstName} , my age is ${this.age}`);
+    }
+};
+console.log(Person.firstName);
+let person = new Person(12);
+person.say();
+```
+我们通过"Person.firstName"来访问，通过类名.属性名。
+
+### 抽象类
+抽象类作为其他派生类的基类使用，它们一般不会直接被实例化，不同于接口，抽象类可以包含成员的实现细节，abstract关键字是用于定义抽象类和在抽象类内部定义抽象方法。
+
+```javascript
+abstract class Animal {
+    abstract makeSound () : void;
+    move () : void {
+        console.log('roaming the earch...');
+    }
+}
+```
+抽象类中的抽象方法不包含具体实现并且必须在派生类中实现。
+
+```javascript
+abstract class Department {
+    constructor (public name : string) {}
+    printName () {
+        console.log('department name :' + this.name);
+    }
+    abstract printMeeting() : void;
+}
+class AccountingDepartment extends Department {
+    constructor () {
+        super('Accounting and Auditing');
+    }
+    printMeeting () :void {
+        console.log('The Accounting Department meets each Monday at 10am.');
+    }
+    generateReports () : void {
+        console.log('Generating accounting reports...');
+    }
+}
+let department : Department;
+department = new AccountingDepartment();
+department.printName();
+department.printMeeting();
+// 这里会报错
+department.generateReports();
+```
+上面代码中，当调用generateReports方法时会报错，因为department的类型是Department类型，Department类中没有generateReports方法。如果想要不报错，我们可以用类型断言，断定他是AccountingDepartment类型。比如:
+```javascript
+(department as AccountingDepartment).generateReports();
+```
