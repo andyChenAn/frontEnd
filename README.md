@@ -84,3 +84,4 @@
 ### Typescript部分
 - 1、 [接口](https://github.com/andyChenAn/frontEnd/issues/76)
 - 2、 [类](https://github.com/andyChenAn/frontEnd/issues/81)
+- 3、 [函数](https://github.com/andyChenAn/frontEnd/issues/82)
