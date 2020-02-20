@@ -68,3 +68,39 @@ let res2 = buildName('chen');
 上面代码中，第一次调用buildName函数不会报错，因为我们传递了一个undefined来获取参数的默认值，第二次调用buildName函数会报错，因为调用函数时需要传入两个参数，而实际上我们只传入了一个参数，所以会报错。
 
 ### 剩余参数
+函数中的剩余参数，我们一般都是用省略号(...)后面接一个名字来表示，剩余参数会被看作是不限个数的可选参数。剩余参数可以一个都没有，也可以有任意个。
+
+```javascript
+function buildName (firstName : string , ...restName : string[]) {
+    return firstName + ' ' + restName.join(' ');
+}
+let res = buildName('andy' , 'chen' , 'and' , 'jack');
+console.log(res);
+```
+### 重载
+在javascript中，我们可以根据函数传入的参数的类型或个数不同而执行不同的操作。在typescript中，我们可以为同一个函数提供多个函数类型定义来进行函数重载。
+
+```javascript
+let suits = ['hearts' , 'spades' , 'clubs' , 'diamonds'];
+// 函数类型定义
+function pickCard (x : {suit : string ; card : number;}[]) :number;
+// 函数类型定义
+function pickCard (x : number) : {suit : string ; card : number;};
+
+function pickCard (x) :any {
+    if (typeof x == 'object') {
+        let pickedCard = Math.floor(Math.random() * x.length);
+        return pickedCard;
+    } else if (typeof x == 'number') {
+        let pickedSuit = Math.floor(x / 13);
+        return {suit : suits[pickedSuit] , card : x % 13};
+    }
+}
+let myDeck = [{suit : 'diamonds' , card : 2} , {suit : 'spades' , card : 10} , {suit : 'hearts' , card : 4}];
+let pickedCard1 = myDeck[pickCard(myDeck)];
+console.log(`card : ${pickedCard1.card} of ${pickedCard1.suit}`);
+
+let pickedCard2 = pickCard(15);
+console.log(`card : ${pickedCard2.card} of ${pickedCard2.suit}`);
+```
+上面代码中，我们定义了两个函数类型定义，当函数调用的时候，会进行正确的类型检查。
