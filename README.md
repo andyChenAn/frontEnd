@@ -82,6 +82,7 @@
 - 25、[Vue的keep-alive实现原理](https://github.com/andyChenAn/frontEnd/issues/74)
 - 26、[Vue模板编译之optimize](https://github.com/andyChenAn/frontEnd/issues/75)
 - 27、[Vue模板编译之generate的节点拼接](https://github.com/andyChenAn/frontEnd/issues/84)
+- 28、[Vue模板编译之generate的数据拼接](https://github.com/andyChenAn/frontEnd/issues/85)
 ### Typescript部分
 - 1、 [接口](https://github.com/andyChenAn/frontEnd/issues/76)
 - 2、 [类](https://github.com/andyChenAn/frontEnd/issues/81)
