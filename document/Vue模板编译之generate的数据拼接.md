@@ -88,7 +88,7 @@
     return data
   }
 ```
-### 指令解析
+### 指令拼接
 在拼接数据的时候，首先会解析指令，拼接指令数据，会调用genDirectives方法，该方法做了以下几件事情：
 
  - 1、获取节点上绑定的指令
@@ -137,8 +137,159 @@ state.directives 是一个数组，包含了 Vue内部指令的处理函数，�
 
 上面代码中，哪些指令需要呢？哪些指令不需要呢？
 
-所有自定义指令都需要解析成对象字符串，然后拼接到render中。 
+所有自定义指令都需要解析成对象字符串，然后拼接到render中。
 
-Vue的内部指令有的需要，有的不需要，Vue的内部执行需要先执行该指令相应的方法，如果调用完之后返回true，那么就需要解析成对象字符串，拼接到render上，如果返回false，那么就不需要解析成成对象字符串，也不会拼接到render上，所以这也是为什么他需要用一个needRuntime变量。
+Vue的内部指令有的需要，有的不需要，Vue的内部执行需要先执行该指令相应的方法，如果调用完之后返回true，那么就需要解析成对象字符串，拼接到render上，如果返回false，那么就不需要解析成对象字符串，也不会拼接到render上，所以这也是为什么他需要用一个needRuntime变量。
 
 像v-mode指令就会拼接到render中，v-html，v-text就不会。
+#### hasRuntime
+是一个标志位，表示是否需要返回拼接指令的结果，如果指令是一个空数组，那么就不会有返回值，也就是说不会有返回值，那么render字符串就不会有directive，如果指令不是空数组，那么hasRuntime为true，需要返回字符串。
+
+### 组件拼接
+这里的组件拼接，主要是处理节点带有is属性，会拼接一个tag属性就好了。
+```html
+<div is="test"></div>
+```
+结果会被拼接成_c('test' , {tag : 'div'})
+### 样式拼接
+样式拼接主要是拼接class和style，而拼接class和style的方法是放在state.dataGenFns中，这是一个数组，里面存放着拼接class和style的方法。
+#### 拼接class
+包括拼接静态class和动态class
+```javascript
+function genData (el) {
+    var data = '';
+    // 静态的class
+    if (el.staticClass) {
+        data += "staticClass:" + (el.staticClass) + ",";
+    }
+    // 动态的class
+    if (el.classBinding) {
+        data += "class:" + (el.classBinding) + ",";
+    }
+    return data
+}
+```
+#### 拼接style
+包括拼接静态style和动态style
+```javascript
+function genData$1 (el) {
+    var data = '';
+    // 静态style
+    if (el.staticStyle) {
+        data += "staticStyle:" + (el.staticStyle) + ",";
+    }
+    // 动态style
+    if (el.styleBinding) {
+        data += "style:(" + (el.styleBinding) + "),";
+    }
+    return data
+}
+```
+举个例子：
+```html
+<div id="app">
+    <div class="a" :class="name" style="width:100px;" :style="{color: '#f60'}">hello andy</div>
+</div>
+```
+结果：
+```javascript
+{
+    staticClass:"a",
+    class:name,
+    staticStyle:{"width":"100px"},
+    style:{color: '#f60'}
+}
+```
+### 属性拼接
+属性拼接包括attrs和props的拼接，如果属性是放在标签上，那么就会被拼接在attrs上，如果属性是放在dom上，那么就会被拼接到domProps上。
+```javascript
+// attributes拼接
+if (el.attrs) {
+    data += "attrs:" + (genProps(el.attrs)) + ",";
+}
+// DOM props拼接
+if (el.props) {
+    data += "domProps:" + (genProps(el.props)) + ",";
+}
+```
+
+```javascript
+// 这个方法就是生成相应的属性
+function genProps (props) {
+  var staticProps = "";
+  var dynamicProps = "";
+  for (var i = 0; i < props.length; i++) {
+    var prop = props[i];
+    var value = transformSpecialNewlines(prop.value);
+    if (prop.dynamic) {
+      dynamicProps += (prop.name) + "," + value + ",";
+    } else {
+      staticProps += "\"" + (prop.name) + "\":" + value + ",";
+    }
+  }
+  staticProps = "{" + (staticProps.slice(0, -1)) + "}";
+  if (dynamicProps) {
+    return ("_d(" + staticProps + ",[" + (dynamicProps.slice(0, -1)) + "])")
+  } else {
+    return staticProps
+  }
+}
+```
+举个例子：
+
+```html
+<div id="app">
+    <div name="name" :age="12" :address.prop="address">hello andy</div>
+</div>
+```
+结果：
+
+```javascript
+{
+    attrs:{"name":"name","age":12},
+    domProps:{"address":address}
+}
+```
+而且页面中渲染出来的DOM也没有address属性，那是因为address属性是保存在dom上，而不是attr上。
+```html
+<div id="app">
+    <div name="name" age="12">hello andy</div>
+</div>
+```
+如果我们想获取到address，我们可以这样
+```javascript
+vm.$refs.box.address
+```
+### 普通slot拼接
+普通的slot拼接，是直接拼接上slot这个属性就好了。
+
+```javascript
+if (el.slotTarget && !el.slotScope) {
+    data += "slot:" + (el.slotTarget) + ",";
+  }
+```
+### 作用域slot拼接
+这个不太看得懂
+### 组件的v-model拼接
+v-model其实就是绑定了一个value属性和一个input事件。
+```javascript
+if (el.model) {
+    data += "model:{value:" + (el.model.value) + ",callback:" + (el.model.callback) + ",expression:" + (el.model.expression) + "},";
+}
+```
+举个例子：
+```html
+<div id="app">
+    <test v-model="name"></test>
+</div>
+```
+结果：
+```javascript
+{
+    model:{
+        value:name,
+        callback:function ($$v) {name=$$v},
+        expression:"name"
+    }
+}
+```
