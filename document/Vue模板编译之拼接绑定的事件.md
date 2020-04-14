@@ -250,52 +250,84 @@ function genHandler (handler) {
 
     var isMethodPath = simplePathRE.test(handler.value);
     var isFunctionExpression = fnExpRE.test(handler.value);
+    // 如果是函数调用语句，那么会把"()"替换为""，比如say()替换为say
     var isFunctionInvocation = simplePathRE.test(handler.value.replace(fnInvokeRE, ''));
-
     // 如果没有修饰符
     if (!handler.modifiers) {
-      if (isMethodPath || isFunctionExpression) {
-        return handler.value
-      }
-      return ("function($event){" + (isFunctionInvocation ? ("return " + (handler.value)) : handler.value) + "}") // inline statement
-    } else {
-      var code = '';
-      var genModifierCode = '';
-      var keys = [];
-      for (var key in handler.modifiers) {
-        if (modifierCode[key]) {
-          genModifierCode += modifierCode[key];
-          // left/right
-          if (keyCodes[key]) {
-            keys.push(key);
-          }
-        } else if (key === 'exact') {
-          var modifiers = (handler.modifiers);
-          genModifierCode += genGuard(
-            ['ctrl', 'shift', 'alt', 'meta']
-              .filter(function (keyModifier) { return !modifiers[keyModifier]; })
-              .map(function (keyModifier) { return ("$event." + keyModifier + "Key"); })
-              .join('||')
-          );
-        } else {
-          keys.push(key);
+        // 如果handler.value是一个方法或者是一个函数，直接返回handler.value作为回调
+        // <button @click="say"></button>
+        if (isMethodPath || isFunctionExpression) {
+            return handler.value
         }
-      }
-      if (keys.length) {
-        code += genKeyFilter(keys);
-      }
-      // Make sure modifiers like prevent and stop get executed after key filtering
-      if (genModifierCode) {
-        code += genModifierCode;
-      }
-      var handlerCode = isMethodPath
+        // 如果是函数调用语句，那么就会包裹一层function
+        // 比如：say()包装成这样：function($event){return say()}
+        // 如果不是函数调用语句，那么就包裹一层function
+        // 内联语句，就包裹一层function
+        // 内联语句：<button @click="say('andy')"></button>
+        // 内联语句：<button @click="say()"></button>
+        // 这个就不是内联语句：<button @click="say"></button>
+        // say和say('andy')的区别在于，say默认自带event对象，而say('andy')传入了什么参数，就带什么参数，如果say('andy')想传入event对象，那么可以这样say('andy' , $event)即可，注意一定是$event，而不能是其他，因为Vue内部拼接事件用的就是$event
+        return ("function($event){" + (isFunctionInvocation ? ("return " + (handler.value)) : handler.value) + "}") // inline statement
+    } else {
+        // 如果有修饰符
+        
+        // 保存按键修饰符
+        var code = '';
+        // 保存内部修饰符
+        var genModifierCode = '';
+        // 保存自定义修饰符
+        var keys = [];
+        // 遍历修饰符
+        for (var key in handler.modifiers) {
+            // 如果存在Vue内部定义的修饰符，
+            if (modifierCode[key]) {
+                genModifierCode += modifierCode[key];
+                // left/right
+                if (keyCodes[key]) {
+                    keys.push(key);
+                }
+            } else if (key === 'exact') {
+                var modifiers = (handler.modifiers);
+                genModifierCode += genGuard(
+                    ['ctrl', 'shift', 'alt', 'meta']
+                      .filter(function (keyModifier) { return !modifiers[keyModifier]; })
+                      .map(function (keyModifier) { return ("$event." + keyModifier + "Key"); })
+                      .join('||')
+                );
+            } else {
+                // 普通的键盘按键
+                keys.push(key);
+            }
+        }
+        // 拼接自定义修饰符
+        if (keys.length) {
+            code += genKeyFilter(keys);
+        }
+        // 确保prevent和stop修饰符在按键过滤之后执行
+        if (genModifierCode) {
+            code += genModifierCode;
+        }
+        // 事件回调主体
+        var handlerCode = isMethodPath
         ? ("return " + (handler.value) + "($event)")
         : isFunctionExpression
           ? ("return (" + (handler.value) + ")($event)")
           : isFunctionInvocation
             ? ("return " + (handler.value))
             : handler.value;
-      return ("function($event){" + code + handlerCode + "}")
+        return ("function($event){" + code + handlerCode + "}")
     }
 }
 ```
+#### 正则表达式
+```javascript
+var isMethodPath = simplePathRE.test(handler.value);
+var isFunctionExpression = fnExpRE.test(handler.value);
+var isFunctionInvocation = simplePathRE.test(handler.value.replace(fnInvokeRE, ''));
+```
+isMethodPath 表示事件绑定的值是否是函数名
+
+isFunctionExpression 表示绑定值是否是函数体
+
+isFunctionInvocation 表示绑定值是否是函数调用
+
