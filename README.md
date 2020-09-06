@@ -86,6 +86,7 @@
 - 29、[Vue模板编译之拼接绑定的事件](https://github.com/andyChenAn/frontEnd/issues/87)
 - 30、[Vue渲染之render](https://github.com/andyChenAn/frontEnd/issues/88)
 - 31、[Vue渲染之静态render](https://github.com/andyChenAn/frontEnd/issues/89)
+- 32、[Vue从新建实例到开始diff](https://github.com/andyChenAn/frontEnd/issues/90)
 ### Typescript部分
 - 1、 [接口](https://github.com/andyChenAn/frontEnd/issues/76)
 - 2、 [类](https://github.com/andyChenAn/frontEnd/issues/81)
