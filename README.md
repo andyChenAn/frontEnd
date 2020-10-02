@@ -8,6 +8,7 @@
 - 2、 [浏览器渲染过程](https://github.com/andyChenAn/frontEnd/issues/35)
 - 3、 [CSS加载会造成阻塞吗？](https://github.com/andyChenAn/frontEnd/issues/36)
 - 4、 [浏览器的事件循环机制](https://github.com/andyChenAn/frontEnd/issues/37)
+- 5、 [浏览器缓存](https://github.com/andyChenAn/frontEnd/issues/92)
 ### Javascript
 - 1、 [函数节流与防抖](https://github.com/andyChenAn/frontEnd/issues/4)
 - 2、 [简单前端模板实现](https://github.com/andyChenAn/frontEnd/issues/5)
