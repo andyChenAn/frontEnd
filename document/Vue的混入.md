@@ -1,4 +1,4 @@
-# Vue的mixins
+# Vue的mixins混入
 
 混入 (mixin) 提供了一种非常灵活的方式，来分发Vue组件中的可复用功能。一个混入对象可以包含任意组件选项。当组件使用混入对象时，所有混入对象的选项将被“混合”进入该组件本身的选项。
 
@@ -31,6 +31,8 @@ Vue.options._base = Vue;
 - 1、我们可以创建全局组件，全局指令，全局过滤器
 - 2、我们可以调用Vue.mixin方法进行全局混入
 - 3、全局混入也就是把需要的东西混入到全局的options中(Vue.options)
+
+全局混入就是调用Vue.mixin()方法来实现，当我们全局注册一个混入，会影响注册之后所有创建的每一个Vue实例。因为混入的数据，都会被合并到Vue.options上。
 
 ##### mergeOptions方法:
 
@@ -75,9 +77,49 @@ function mergeOptions (parent,child,vm) {
     return options
 }
 ```
+mergeOptions方法主要做了以下几件事情：
+- 1、遍历mixins，合并每一个mixin
+- 2、首先处理全局的options上的key，并且获取key上对应的合并策略方式，进行合并
+- 3、再处理每一个mixin上的key，并且获取key上对应的合并策略方式，排除掉已经在全局options处理的key（当全局options和mixin存在相同key时）
+- 4、返回已经合并后的对象
 
+strats其实就是一个对象，里面保存了很多种基于不同属性的合并策略：
+```javascript
+strats = {
+    activated : function mergeHook () {},
+    beforeCreate : function mergeHook () {},
+    beforeDestroy : function mergeHook () {},
+    beforeMount : function mergeHook () {},
+    beforeUpdate : function mergeHook () {},
+    components : function mergeAssets () {},
+    computed : function () {},
+    created : function mergeHook () {},
+    data : function () {},
+    deactivated : function mergeHook () {},
+    destroyed : function mergeHook () {},
+    directives : function mergeAssets () {},
+    el : function () {},
+    errorCaptured : function mergeHook () {},
+    filters : function mergeAssets () {},
+    inject : function () {},
+    methods : function () {},
+    mounted : function mergeHook () {},
+    props : function () {},
+    propsData : function () {},
+    provider : function mergeDataOrFn () {},
+    serverPrefetch : function mergeHook () {},
+    updated : function mergeHook () {},
+    watch : function () {}
+}
+```
+如果需要合并的属性策略不存在，那么就使用默认的合并策略：
 
-
+```javascript
+var defaultStrat = function (parentVal, childVal) {
+    return childVal === undefined ? parentVal : childVal;
+};
+```
+默认的合并策略方式就是：优先使用组件options的，如果没有那么就使用组件mixins中的options的，如果还是没有，那么就使用全局options的。
 
 ### 处理data混入
 
@@ -202,3 +244,19 @@ strats.watch = function (parentVal,childVal,vm,key) {
     return ret
 };
 ```
+### 处理components，directives，filters
+
+Vue处理这三个的混入是这样的：
+```javascript
+function mergeAssets(parentVal, childVal, vm, key) {
+    // 把一个对象直接当做另外一个对象的原型
+    var res = Object.create(parentVal || null);
+    if (childVal) {
+        assertObjectType(key, childVal, vm);
+        return extend(res, childVal);
+    } else {
+        return res;
+    }
+}
+```
+上面代码中，把一个对象当做另外一个对象的原型，这样做的好处就是，能够同时访问两个相同的字段，避免被覆盖。
