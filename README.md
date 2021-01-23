@@ -89,7 +89,6 @@
 - 31、[Vue渲染之静态render](https://github.com/andyChenAn/frontEnd/issues/89)
 - 32、[Vue从新建实例到开始diff](https://github.com/andyChenAn/frontEnd/issues/90)
 - 33、[Vue的diff流程](https://github.com/andyChenAn/frontEnd/issues/91)
-- 34、[Vue的插槽原理](https://github.com/andyChenAn/frontEnd/issues/92)
 - 35、[Vue的依赖收集之基本类型](https://github.com/andyChenAn/frontEnd/issues/93)
 - 36、[Vue的依赖收集之引用类型](https://github.com/andyChenAn/frontEnd/issues/94)
 - 37、[Vue的mixins混入](https://github.com/andyChenAn/frontEnd/issues/95)
